@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | TenantHub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="login-styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>🏢 TenantHub</h1>
+                <p>Sign in to your account</p>
+            </div>
+
+            <!-- Login Tabs -->
+            <div class="login-tabs">
+                <button class="tab-btn active" onclick="switchTab('admin')">Admin</button>
+                <button class="tab-btn" onclick="switchTab('tenant')">Tenant</button>
+            </div>
+
+            <!-- Admin Login Form -->
+            <form id="adminLoginForm" class="login-form">
+                <div class="form-group">
+                    <label>Admin Email</label>
+                    <input type="email" id="adminEmail" value="admin@tenanthub.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="adminPassword" value="admin123" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Sign in as Admin</button>
+            </form>
+
+            <!-- Tenant Login Form -->
+            <form id="tenantLoginForm" class="login-form hidden">
+                <div class="form-group">
+                    <label>Tenant Email</label>
+                    <input type="email" id="tenantEmail" placeholder="admin@company.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="tenantPassword" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Sign in as Tenant</button>
+            </form>
+
+            <div class="login-footer">
+                <p class="demo-credentials">
+                    <strong>Demo Credentials:</strong><br>
+                    Admin: admin@tenanthub.com / admin123<br><br>
+                    Tenants: See admin dashboard for credentials
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

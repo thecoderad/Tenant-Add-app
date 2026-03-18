@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | TenantHub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>🏢 TenantHub</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-page="tenants">
+                    <span class="icon">👥</span>
+                    <span>Tenants</span>
+                </a>
+                <a href="#" class="nav-item" data-page="messages">
+                    <span class="icon">💬</span>
+                    <span>Messages</span>
+                </a>
+                <a href="#" class="nav-item" data-page="ai-assistant">
+                    <span class="icon">🤖</span>
+                    <span>AI Assistant</span>
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <span class="icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="index.html" class="nav-item">
+                    <span class="icon">🚪</span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="top-bar-right">
+                    <div class="admin-profile">
+                        <span class="admin-name">Admin User</span>
+                        <span class="admin-avatar">👤</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div class="page-content" id="dashboardPage">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3 id="totalTenants">0</h3>
+                            <p>Total Tenants</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <h3 id="activeTenants">0</h3>
+                            <p>Active Tenants</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏸️</div>
+                        <div class="stat-info">
+                            <h3 id="inactiveTenants">0</h3>
+                            <p>Inactive Tenants</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-info">
+                            <h3 id="pendingTenants">0</h3>
+                            <p>Pending Tenants</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-tenants">
+                    <h2>Recent Tenants</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tenant Name</th>
+                                    <th>Domain</th>
+                                    <th>Admin Email</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboardTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tenants Page -->
+            <div class="page-content hidden" id="tenantsPage">
+                <div class="page-header">
+                    <h2>Tenant Management</h2>
+                    <button class="btn btn-primary" onclick="openTenantModal()">+ Add Tenant</button>
+                </div>
+
+                <div class="filter-bar">
+                    <input type="text" id="searchInput" placeholder="Search tenants..." class="search-input">
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tenant Name</th>
+                                <th>Domain</th>
+                                <th>Admin Email</th>
+                                <th>Status</th>
+                                <th>Created Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenantsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Messages Page -->
+            <div class="page-content hidden" id="messagesPage">
+                <div class="messaging-container">
+                    <div class="chat-sidebar">
+                        <div class="chat-sidebar-header">
+                            <h3>Conversations</h3>
+                        </div>
+                        <ul class="tenant-list" id="tenantList">
+                            <!-- Tenant list loaded dynamically -->
+                        </ul>
+                    </div>
+                    <div class="chat-main">
+                        <div class="chat-header">
+                            <div class="tenant-info">
+                                <div class="tenant-avatar" id="chatAvatar">👤</div>
+                                <div class="tenant-details">
+                                    <h4 id="chatTenantName">Select a tenant</h4>
+                                    <p id="chatTenantEmail">Start a conversation</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-conversation" id="chatConversation">
+                            <div style="text-align: center; padding: 40px; color: #718096;">
+                                Select a tenant from the list to start messaging
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <textarea id="chatInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendMessageToTenant();}"></textarea>
+                            <button class="btn btn-primary" onclick="sendMessageToTenant()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Assistant Page -->
+            <div class="page-content hidden" id="aiPage">
+                <div class="ai-container">
+                    <div class="ai-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h2>🤖 AI Assistant</h2>
+                                <p>Get insights and help with tenant management</p>
+                            </div>
+                            <button class="clear-chat-btn" onclick="clearAdminChat()">
+                                🗑️ Clear Chat
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ai-features">
+                        <button class="ai-feature-btn" onclick="sendAdminSuggestion('How do I add a new tenant?')">
+                            <span>👥</span> Add Tenant
+                        </button>
+                        <button class="ai-feature-btn" onclick="sendAdminSuggestion('How to reset credentials?')">
+                            <span>🔑</span> Reset Credentials
+                        </button>
+                        <button class="ai-feature-btn" onclick="sendAdminSuggestion('Message a tenant')">
+                            <span>💬</span> Message Tenant
+                        </button>
+                        <button class="ai-feature-btn" onclick="sendAdminSuggestion('View analytics')">
+                            <span>📊</span> View Analytics
+                        </button>
+                    </div>
+                    <div class="chat-container" id="chatContainer">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message bot-message">
+                                <div class="message-content">
+                                    Hello! I'm your AI assistant. How can I help you with tenant management today?
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chatInput" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
+                            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                        </div>
+                        <div class="chat-suggestions">
+                            <button class="suggestion-chip" onclick="sendAdminSuggestion('How to add a new tenant')">How to add a tenant?</button>
+                            <button class="suggestion-chip" onclick="sendAdminSuggestion('Reset tenant password')">Reset password</button>
+                            <button class="suggestion-chip" onclick="sendAdminSuggestion('Message all tenants')">Message all tenants</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="page-content hidden" id="settingsPage">
+                <div class="settings-container">
+                    <h2>Settings</h2>
+                    <div class="settings-section">
+                        <h3>API Configuration</h3>
+                        <div class="form-group">
+                            <label>Gemini API Key</label>
+                            <input type="password" id="apiKeyInput" value="AIzaSyC8rlJJ26KYDbmr_NmcBQ1dFRUvvC5tKUA" readonly>
+                            <button class="btn btn-secondary" onclick="toggleApiKey()">Show/Hide</button>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h3>System Settings</h3>
+                        <div class="form-group">
+                            <label>Session Timeout (minutes)</label>
+                            <input type="number" value="30">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Tenant Status</label>
+                            <select>
+                                <option value="active">Active</option>
+                                <option value="pending">Pending</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Tenant Modal -->
+    <div class="modal" id="tenantModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Tenant</h2>
+                <button class="close" onclick="closeTenantModal()">&times;</button>
+            </div>
+            <form id="tenantForm">
+                <input type="hidden" id="tenantId">
+                <div class="form-group">
+                    <label for="tenantName">Tenant Name <span class="required">*</span></label>
+                    <input type="text" id="tenantName" placeholder="e.g., Acme Corporation" required>
+                </div>
+                <div class="form-group">
+                    <label for="tenantDomain">Domain <span class="required">*</span></label>
+                    <input type="text" id="tenantDomain" placeholder="e.g., acme.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminEmail">Admin Email <span class="required">*</span></label>
+                    <input type="email" id="adminEmail" placeholder="e.g., admin@acme.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="text" id="adminPassword" placeholder="Auto-generated if empty">
+                    <small class="help-text">Leave empty to auto-generate a secure password</small>
+                </div>
+                <div class="form-group">
+                    <label for="tenantStatus">Status <span class="required">*</span></label>
+                    <select id="tenantStatus" required>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeTenantModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Tenant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="database.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+// Admin Dashboard JavaScript - With Database & Messaging System
+const API_KEY = 'AIzaSyC8rlJJ26KYDbmr_NmcBQ1dFRUvvC5tKUA';
+const ADMIN_ID = 0; // Admin user ID
+
+let currentPage = 'dashboard';
+let currentChatTenant = null;
+let chatHistory = [];
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    updateStats();
+    renderDashboardTable();
+    renderTenantsTable();
+    setupNavigation();
+    setupEventListeners();
+    loadTenantList();
+    updateMessageCount();
+});
+
+// Update statistics from database
+function updateStats() {
+    const totalTenants = db.count('tenants');
+    const activeTenants = db.query('tenants', { status: 'active' }).length;
+    const inactiveTenants = db.query('tenants', { status: 'inactive' }).length;
+    const pendingTenants = db.query('tenants', { status: 'pending' }).length;
+
+    document.getElementById('totalTenants').textContent = totalTenants;
+    document.getElementById('activeTenants').textContent = activeTenants;
+    document.getElementById('inactiveTenants').textContent = inactiveTenants;
+    document.getElementById('pendingTenants').textContent = pendingTenants;
+}
+
+// Update message count badge
+function updateMessageCount() {
+    const unreadCount = chat.getUnreadCount(ADMIN_ID);
+    const navItem = document.querySelector('[data-page="messages"]');
+    if (navItem) {
+        navItem.setAttribute('data-count', unreadCount);
+    }
+}
+
+// Render dashboard table
+function renderDashboardTable() {
+    const tbody = document.getElementById('dashboardTableBody');
+    const tenants = db.getAll('tenants');
+    const recent = tenants.slice(0, 5);
+
+    tbody.innerHTML = recent.map(t => `
+        <tr>
+            <td><strong>${t.name}</strong></td>
+            <td>${t.domain}</td>
+            <td>${t.email}</td>
+            <td><span class="status-badge status-${t.status}">${t.status.toUpperCase()}</span></td>
+            <td>${t.created}</td>
+            <td>
+                <button class="btn btn-action btn-edit" onclick="editTenant(${t.id})">Edit</button>
+                <button class="btn btn-action btn-delete" onclick="deleteTenant(${t.id})">Delete</button>
+                <button class="btn btn-action btn-generate" onclick="generateCredentials(${t.id})">Credentials</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Render tenants table
+function renderTenantsTable() {
+    const tbody = document.getElementById('tenantsTableBody');
+    const tenants = db.getAll('tenants');
+
+    tbody.innerHTML = tenants.map(t => `
+        <tr>
+            <td><strong>${t.name}</strong></td>
+            <td>${t.domain}</td>
+            <td>${t.email}</td>
+            <td><span class="status-badge status-${t.status}">${t.status.toUpperCase()}</span></td>
+            <td>${t.created}</td>
+            <td>
+                <button class="btn btn-action btn-edit" onclick="editTenant(${t.id})">Edit</button>
+                <button class="btn btn-action btn-delete" onclick="deleteTenant(${t.id})">Delete</button>
+                <button class="btn btn-action btn-generate" onclick="generateCredentials(${t.id})">Credentials</button>
+                <button class="btn btn-action btn-chat" onclick="openChatWithTenant(${t.id})" title="Chat">💬</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Load tenant list for chat sidebar
+function loadTenantList() {
+    const tenantList = document.getElementById('tenantList');
+    if (!tenantList) return;
+
+    const tenants = db.getAll('tenants');
+
+    tenantList.innerHTML = tenants.map(t => {
+        const lastMessage = chat.getInbox(t.id).slice(0, 1)[0];
+        const unreadCount = chat.getUnreadCount(ADMIN_ID);
+        const initials = t.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+        return `
+            <li class="tenant-item" onclick="openChatWithTenant(${t.id})" data-tenant-id="${t.id}">
+                <div class="tenant-name">${t.name}</div>
+                ${lastMessage ? `<div class="last-message">${lastMessage.content}</div>` : '<div class="last-message">No messages yet</div>'}
+            </li>
+        `;
+    }).join('');
+}
+
+// Open chat with specific tenant
+function openChatWithTenant(tenantId) {
+    currentChatTenant = tenantId;
+    const tenant = db.get('tenants', tenantId);
+
+    // Update UI
+    document.querySelectorAll('.tenant-item').forEach(el => {
+        el.classList.remove('active');
+        if (parseInt(el.dataset.tenantId) === tenantId) {
+            el.classList.add('active');
+        }
+    });
+
+    // Update header
+    const headerName = document.getElementById('chatTenantName');
+    const headerEmail = document.getElementById('chatTenantEmail');
+    const headerAvatar = document.getElementById('chatAvatar');
+
+    if (headerName) headerName.textContent = tenant.name;
+    if (headerEmail) headerEmail.textContent = tenant.email;
+    if (headerAvatar) headerAvatar.textContent = tenant.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+    // Load conversation
+    loadConversation(tenantId);
+
+    // Mark messages as read
+    chat.markAllAsRead(ADMIN_ID);
+    updateMessageCount();
+}
+
+// Load conversation history
+function loadConversation(tenantId) {
+    const conversation = chat.getConversation(ADMIN_ID, tenantId);
+    const container = document.getElementById('chatConversation');
+
+    if (!container) return;
+
+    if (conversation.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #718096;">No messages yet. Start the conversation!</div>';
+        return;
+    }
+
+    container.innerHTML = conversation.map(msg => {
+        const date = new Date(msg.timestamp);
+        const time = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const sender = msg.fromId === ADMIN_ID ? 'admin' : 'tenant';
+
+        return `
+            <div class="message-row ${sender}">
+                <div class="message-bubble">
+                    ${msg.content}
+                </div>
+                <div class="message-meta">${time}</div>
+            </div>
+        `;
+    }).join('');
+
+    container.scrollTop = container.scrollHeight;
+}
+
+// Send message to tenant
+function sendMessageToTenant() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+
+    if (!message || !currentChatTenant) return;
+
+    // Save to database
+    chat.send(ADMIN_ID, currentChatTenant, message);
+
+    // Reload conversation
+    loadConversation(currentChatTenant);
+
+    // Clear input
+    input.value = '';
+
+    // Update tenant list
+    loadTenantList();
+}
+
+// Navigation
+function setupNavigation() {
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = item.dataset.page;
+            navigateTo(page);
+        });
+    });
+}
+
+function navigateTo(page) {
+    currentPage = page;
+
+    // Update nav items
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    const navItem = document.querySelector(`[data-page="${page}"]`);
+    if (navItem) navItem.classList.add('active');
+
+    // Update page title
+    const titles = {
+        dashboard: 'Dashboard',
+        tenants: 'Tenant Management',
+        'ai-assistant': 'AI Assistant',
+        settings: 'Settings',
+        messages: 'Messages'
+    };
+    document.getElementById('pageTitle').textContent = titles[page] || page;
+
+    // Show correct page
+    document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+    const pageEl = document.getElementById(`${page}Page`);
+    if (pageEl) {
+        pageEl.classList.remove('hidden');
+    }
+
+    // Special handling for messages page
+    if (page === 'messages' && currentChatTenant) {
+        loadConversation(currentChatTenant);
+    }
+}
+
+// Toggle sidebar
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('active');
+}
+
+// Modal functions
+function openTenantModal() {
+    const modal = document.getElementById('tenantModal');
+    if (modal) {
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        document.getElementById('modalTitle').textContent = 'Add New Tenant';
+        document.getElementById('tenantForm').reset();
+        document.getElementById('tenantId').value = '';
+    }
+}
+
+function closeTenantModal() {
+    const modal = document.getElementById('tenantModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+}
+
+// Edit tenant
+function editTenant(id) {
+    const tenant = db.get('tenants', id);
+    if (tenant) {
+        document.getElementById('tenantId').value = tenant.id;
+        document.getElementById('tenantName').value = tenant.name;
+        document.getElementById('tenantDomain').value = tenant.domain;
+        document.getElementById('adminEmail').value = tenant.email;
+        document.getElementById('adminPassword').value = tenant.password || '';
+        document.getElementById('tenantStatus').value = tenant.status;
+        document.getElementById('modalTitle').textContent = 'Edit Tenant';
+        const modal = document.getElementById('tenantModal');
+        modal.style.display = 'block';
+        modal.classList.add('show');
+    }
+}
+
+// Delete tenant
+function deleteTenant(id) {
+    if (confirm('Are you sure you want to delete this tenant? This action cannot be undone.')) {
+        db.delete('tenants', id);
+        updateStats();
+        renderDashboardTable();
+        renderTenantsTable();
+        loadTenantList();
+    }
+}
+
+// Generate credentials
+function generateCredentials(id) {
+    const tenant = db.get('tenants', id);
+    if (tenant) {
+        const newPassword = Math.random().toString(36).slice(-8);
+        db.update('tenants', id, { password: newPassword });
+
+        const users = db.getAll('users');
+        const tenantUser = users.tenants?.find(t => t.id === id);
+        if (tenantUser) {
+            tenantUser.password = newPassword;
+            localStorage.setItem('tenanthub_users', JSON.stringify(users));
+        }
+
+        alert(`Credentials for ${tenant.name}:\n\nEmail: ${tenant.email}\nPassword: ${newPassword}\n\nTenant Dashboard URL: tenant.html`);
+    }
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const tenantForm = document.getElementById('tenantForm');
+    const chatInput = document.getElementById('chatInput');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTenants);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterTenants);
+    }
+    if (tenantForm) {
+        tenantForm.addEventListener('submit', handleFormSubmit);
+    }
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessageToTenant();
+            }
+        });
+    }
+}
+
+// Filter tenants
+function filterTenants() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+
+    let filtered = db.query('tenants', { status: status || undefined });
+
+    if (search) {
+        filtered = filtered.filter(t =>
+            t.name.toLowerCase().includes(search) ||
+            t.domain.toLowerCase().includes(search) ||
+            t.email.toLowerCase().includes(search)
+        );
+    }
+
+    renderFilteredTable(filtered);
+}
+
+function renderFilteredTable(filtered) {
+    const tbody = document.getElementById('tenantsTableBody');
+    tbody.innerHTML = filtered.map(t => `
+        <tr>
+            <td><strong>${t.name}</strong></td>
+            <td>${t.domain}</td>
+            <td>${t.email}</td>
+            <td><span class="status-badge status-${t.status}">${t.status.toUpperCase()}</span></td>
+            <td>${t.created}</td>
+            <td>
+                <button class="btn btn-action btn-edit" onclick="editTenant(${t.id})">Edit</button>
+                <button class="btn btn-action btn-delete" onclick="deleteTenant(${t.id})">Delete</button>
+                <button class="btn btn-action btn-generate" onclick="generateCredentials(${t.id})">Credentials</button>
+                <button class="btn btn-action btn-chat" onclick="openChatWithTenant(${t.id})" title="Chat">💬</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Handle form submit
+function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('tenantId').value;
+    const tenantData = {
+        name: document.getElementById('tenantName').value,
+        domain: document.getElementById('tenantDomain').value,
+        email: document.getElementById('adminEmail').value,
+        password: document.getElementById('adminPassword').value || Math.random().toString(36).slice(-8),
+        status: document.getElementById('tenantStatus').value,
+        created: new Date().toISOString().split('T')[0]
+    };
+
+    if (id) {
+        db.update('tenants', id, tenantData);
+    } else {
+        db.create('tenants', tenantData);
+    }
+
+    updateStats();
+    renderDashboardTable();
+    renderTenantsTable();
+    loadTenantList();
+    closeTenantModal();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('tenantModal');
+    if (event.target === modal) {
+        closeTenantModal();
+    }
+}
+
+// Gemini AI Integration
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    // Add user message
+    addChatMessage(message, 'user');
+    input.value = '';
+
+    // Show loading
+    addChatMessage('Thinking...', 'bot', true);
+
+    try {
+        const response = await callGeminiAPI(message);
+        removeLoadingMessage();
+        addChatMessage(response, 'bot');
+    } catch (error) {
+        removeLoadingMessage();
+        addChatMessage('Sorry, I encountered an error. Please try again.', 'bot');
+    }
+}
+
+async function callGeminiAPI(prompt) {
+    const systemContext = 'You are an AI assistant helping with tenant management. You can help with creating tenants, managing access, generating credentials, and providing insights about tenant usage.';
+    const fullPrompt = `${systemContext}\n\nUser question: ${prompt}`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: fullPrompt }]
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('API request failed');
+        }
+
+        const data = await response.json();
+
+        if (data.candidates && data.candidates[0].content) {
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        throw new Error('Invalid response from API');
+    } catch (error) {
+        console.error('AI API Error:', error);
+        return getAdminFallbackResponse(prompt);
+    }
+}
+
+// Fallback responses when API is unavailable
+function getAdminFallbackResponse(prompt) {
+    const lowerPrompt = prompt.toLowerCase();
+    
+    // Check for action commands
+    if (lowerPrompt.includes('create') || lowerPrompt.includes('add') || lowerPrompt.includes('new tenant')) {
+        // Extract tenant info from prompt
+        const nameMatch = prompt.match(/(?:name|called|tenant[:\s]+)([A-Za-z\s]+?)(?:domain|email|@|$)/i);
+        const domainMatch = prompt.match(/(?:domain|at|\.)([a-z0-9]+\.[a-z]+)/i);
+        const emailMatch = prompt.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+        
+        if (nameMatch || domainMatch || emailMatch) {
+            const tenantData = {
+                name: nameMatch ? nameMatch[1].trim() : 'New Tenant',
+                domain: domainMatch ? domainMatch[1].trim() : 'example.com',
+                email: emailMatch ? emailMatch[1].trim() : 'admin@example.com',
+                password: Math.random().toString(36).slice(-8),
+                status: 'active',
+                created: new Date().toISOString().split('T')[0]
+            };
+            
+            try {
+                db.create('tenants', tenantData);
+                updateStats();
+                renderDashboardTable();
+                renderTenantsTable();
+                loadTenantList();
+                return `✅ Tenant created successfully!\n\n**Details:**\n- Name: ${tenantData.name}\n- Domain: ${tenantData.domain}\n- Email: ${tenantData.email}\n- Password: ${tenantData.password}\n- Status: Active\n\nThe tenant can now login with these credentials.`;
+            } catch (e) {
+                return `I understand you want to create a tenant. Please use the '+ Add Tenant' button on the Tenants page to create a new tenant with the details.`;
+            }
+        }
+        
+        return `To create a new tenant:\n1. Go to the **Tenants** page\n2. Click **'+ Add Tenant'**\n3. Fill in the details\n\nOr I can create one for you if you provide:\n- Tenant name\n- Domain (e.g., example.com)\n- Admin email`;
+    }
+    
+    if ((lowerPrompt.includes('delete') || lowerPrompt.includes('remove')) && (lowerPrompt.includes('tenant'))) {
+        return "To delete a tenant:\n1. Go to the **Tenants** page\n2. Find the tenant in the list\n3. Click the **Delete** button\n4. Confirm the deletion\n\n⚠️ Warning: This action cannot be undone!";
+    }
+    
+    if (lowerPrompt.includes('credential') || lowerPrompt.includes('password') || lowerPrompt.includes('reset')) {
+        return "To reset tenant credentials:\n1. Go to the **Tenants** page\n2. Find the tenant\n3. Click **'Credentials'** button\n4. A new password will be generated\n\nThe tenant will receive a new login password.";
+    }
+    
+    if (lowerPrompt.includes('message') || lowerPrompt.includes('chat') || lowerPrompt.includes('send')) {
+        return "To message a tenant:\n1. Go to the **Messages** page\n2. Select a tenant from the list\n3. Type your message\n4. Click **Send**\n\nYou can communicate directly with tenants!";
+    }
+    
+    if (lowerPrompt.includes('analytics') || lowerPrompt.includes('stats') || lowerPrompt.includes('report') || lowerPrompt.includes('dashboard')) {
+        const stats = db.getAll('tenants');
+        const active = stats.filter(t => t.status === 'active').length;
+        const inactive = stats.filter(t => t.status === 'inactive').length;
+        const pending = stats.filter(t => t.status === 'pending').length;
+        
+        return `📊 **Current Analytics:**\n\n- **Total Tenants:** ${stats.length}\n- **Active:** ${active}\n- **Inactive:** ${inactive}\n- **Pending:** ${pending}\n\nYou can view detailed analytics on the Dashboard page!`;
+    }
+    
+    if (lowerPrompt.includes('list') || lowerPrompt.includes('show') && lowerPrompt.includes('tenant')) {
+        const tenants = db.getAll('tenants');
+        if (tenants.length === 0) return 'No tenants found.';
+        
+        let list = '📋 **Tenant List:**\n\n';
+        tenants.forEach(t => {
+            list += `• **${t.name}** (${t.domain}) - ${t.status.toUpperCase()}\n`;
+        });
+        return list;
+    }
+    
+    if (lowerPrompt.includes('edit') || lowerPrompt.includes('update') && lowerPrompt.includes('tenant')) {
+        return "To edit a tenant:\n1. Go to the **Tenants** page\n2. Find the tenant\n3. Click **'Edit'** button\n4. Modify the details\n5. Click **Save**";
+    }
+    
+    if (lowerPrompt.includes('status') && (lowerPrompt.includes('change') || lowerPrompt.includes('set'))) {
+        return "To change tenant status:\n1. Go to the **Tenants** page\n2. Click **Edit** on the tenant\n3. Change the **Status** dropdown\n4. Options: Active, Inactive, Pending\n5. Click **Save**";
+    }
+    
+    if (lowerPrompt.includes('hello') || lowerPrompt.includes('hi') || lowerPrompt.includes('hey') || lowerPrompt.includes('help')) {
+        return `Hello! 👋 I'm your powerful AI assistant!\n\n**I can help you:**\n\n🆕 **Create tenants** - Just tell me the name, domain, and email\n👥 **List all tenants** - Ask me to show tenants\n✏️ **Edit tenants** - I'll guide you\n🗑️ **Delete tenants** - With confirmation\n🔑 **Reset passwords** - Generate new credentials\n💬 **Message tenants** - Start a conversation\n📊 **View analytics** - See your statistics\n⚙️ **Change status** - Activate/deactivate tenants\n\n**Try:** "Create a new tenant called ABC Corp with domain abc.com and email admin@abc.com"\n\nWhat would you like to do?`;
+    }
+    
+    return `I can help you with:\n\n🆕 **Create tenants** - "Create a new tenant..."\n👥 **List tenants** - "Show me all tenants"\n✏️ **Edit tenants** - "Edit tenant..."\n🗑️ **Delete tenants** - "Delete tenant..."\n🔑 **Reset passwords** - "Reset password for..."\n💬 **Message tenants** - "Send message to..."\n📊 **Analytics** - "Show analytics"\n⚙️ **Change status** - "Change status to..."\n\nWhat would you like to do?`;
+}
+
+function addChatMessage(text, sender, isLoading = false) {
+    const messages = document.getElementById('chatMessages');
+    if (!messages) return;
+
+    const div = document.createElement('div');
+    div.className = `message ${sender}-message${isLoading ? ' loading' : ''}`;
+    div.innerHTML = `<div class="message-content">${text}</div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function removeLoadingMessage() {
+    const loading = document.querySelector('.message.loading');
+    if (loading) loading.remove();
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+// Toggle API key visibility
+function toggleApiKey() {
+    const input = document.getElementById('apiKeyInput');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+// Send suggestion to AI chat
+function sendAdminSuggestion(text) {
+    const input = document.getElementById('chatInput');
+    if (input) {
+        input.value = text;
+        sendMessage();
+    }
+}
+
+// Clear admin chat history
+function clearAdminChat() {
+    if (confirm('Are you sure you want to clear the chat history?')) {
+        const messages = document.getElementById('chatMessages');
+        if (messages) {
+            messages.innerHTML = `
+                <div class="message bot-message">
+                    <div class="message-content">
+                        Chat cleared! How can I help you with tenant management today?
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Escape to close modal
+    if (e.key === 'Escape') {
+        closeTenantModal();
+    }
+    // Ctrl+N to open new tenant modal
+    if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        openTenantModal();
+    }
+});
