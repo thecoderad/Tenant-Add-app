@@ -27,6 +27,8 @@ document.getElementById('adminLoginForm').addEventListener('submit', (e) => {
     // Check admin credentials
     const users = JSON.parse(localStorage.getItem('tenanthub_users') || '{}');
     if (users.admin && users.admin.email === email && users.admin.password === password) {
+        // Set admin session
+        localStorage.setItem('tenanthub_admin_logged_in', 'true');
         window.location.href = 'admin.html';
     } else {
         showLoginError('Invalid admin credentials. Please check your email and password.');

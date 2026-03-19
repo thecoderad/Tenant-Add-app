@@ -53,6 +53,9 @@
                     <h1 id="tenantPageTitle">Overview</h1>
                 </div>
                 <div class="tenant-top-right">
+                    <a href="admin.html" class="tenant-portal-link" title="Go to Admin Portal" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        ⚙️ Admin Portal
+                    </a>
                     <div class="tenant-info">
                         <span class="tenant-name" id="tenantNameDisplay">Tenant Name</span>
                         <span class="tenant-domain" id="tenantDomainDisplay">domain.com</span>
@@ -179,16 +182,16 @@
                         </div>
                     </div>
                     <div class="ai-features">
-                        <button class="ai-feature-btn" onclick="sendSuggestion('Tell me about my analytics')">
-                            <span>📊</span> Analytics
+                        <button class="ai-feature-btn" onclick="sendSuggestion('Show me my analytics dashboard')">
+                            <span>📊</span> My Analytics
                         </button>
                         <button class="ai-feature-btn" onclick="sendSuggestion('Help me update my profile')">
-                            <span>👤</span> Profile Help
+                            <span>👤</span> Update Profile
                         </button>
-                        <button class="ai-feature-btn" onclick="sendSuggestion('What features are available?')">
-                            <span>✨</span> Features
+                        <button class="ai-feature-btn" onclick="sendSuggestion('What features are available on this platform?')">
+                            <span>✨</span> Platform Features
                         </button>
-                        <button class="ai-feature-btn" onclick="sendSuggestion('How to contact admin?')">
+                        <button class="ai-feature-btn" onclick="sendSuggestion('How do I contact the admin?')">
                             <span>📞</span> Contact Admin
                         </button>
                     </div>
@@ -205,9 +208,10 @@
                             <button class="btn btn-primary" onclick="sendTenantMessage()">Send</button>
                         </div>
                         <div class="chat-suggestions">
-                            <button class="suggestion-chip" onclick="sendSuggestion('How do I view my analytics?')">How do I view my analytics?</button>
-                            <button class="suggestion-chip" onclick="sendSuggestion('Update my email address')">Update my email</button>
-                            <button class="suggestion-chip" onclick="sendSuggestion('Send message to admin')">Message admin</button>
+                            <button class="suggestion-chip" onclick="sendSuggestion('Show me my analytics and statistics')">📈 View Analytics</button>
+                            <button class="suggestion-chip" onclick="sendSuggestion('Update my email address to new email')">✏️ Update Email</button>
+                            <button class="suggestion-chip" onclick="sendSuggestion('Send a message to admin')">💬 Message Admin</button>
+                            <button class="suggestion-chip" onclick="sendSuggestion('What is my account status?')">📋 Account Status</button>
                         </div>
                     </div>
                 </div>
@@ -248,5 +252,15 @@
 
     <script src="database.js"></script>
     <script src="tenant.js"></script>
+    <script>
+        // Check if tenant is logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentTenant = sessionStorage.getItem('currentTenant');
+            if (!currentTenant) {
+                // Not logged in, redirect to login
+                window.location.href = 'index.html?redirect=tenant';
+            }
+        });
+    </script>
 </body>
 </html>

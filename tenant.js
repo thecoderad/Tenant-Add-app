@@ -1,6 +1,36 @@
 // Tenant Dashboard JavaScript - With Database & Messaging
-const API_KEY = 'AIzaSyC8rlJJ26KYDbmr_NmcBQ1dFRUvvC5tKUA';
 const ADMIN_ID = 0;
+
+// OpenRouter API Configuration
+const OPENROUTER_API_KEY = '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';
+const OPENROUTER_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+
+// System prompt to give AI context about the tenant website
+const TENANT_SYSTEM_PROMPT = `You are an AI Assistant for TenantHub Tenant Dashboard - A Professional Tenant Management Platform.
+
+Website Information:
+- Name: TenantHub
+- This is a tenant dashboard where tenants can view their analytics, manage profile, and contact admin
+- URL path: /tenant.html
+
+Features Available for Tenants:
+1. Overview Dashboard - View tenant summary and status
+2. Analytics - View usage statistics, page views, AI interactions
+3. Messages - Chat with admin
+4. AI Assistant - Smart help for tenant features
+5. Profile - Update tenant details (name, email, password)
+
+Your Capabilities as Tenant AI:
+- Help tenants understand their dashboard and analytics
+- Guide them through profile updates
+- Explain how to contact admin
+- Answer questions about their account status
+- Help with platform features
+
+Be professional, helpful, and concise. Use markdown formatting.`;
+
+// n8n Webhook Configuration - Using Gemini 2.5 Flash model
+const TENANT_WEBHOOK_URL = 'https://aiagent01.astrosevasankalp.online/webhook-test/aiagent';
 
 // Current tenant session
 let currentTenant = null;
@@ -125,10 +155,26 @@ function navigateTo(page) {
     const pageTitle = document.getElementById('tenantPageTitle');
     if (pageTitle) pageTitle.textContent = titles[page] || page;
 
-    // Show correct page
-    document.querySelectorAll('.tenant-page-content').forEach(p => p.classList.add('hidden'));
-    const pageEl = document.getElementById(`${page}Page`);
-    if (pageEl) pageEl.classList.remove('hidden');
+    // Hide all pages first
+    document.querySelectorAll('.tenant-page-content').forEach(p => {
+        p.classList.add('hidden');
+        p.style.display = 'none';
+    });
+    
+    // Map page names to element IDs
+    const pageIdMap = {
+        'overview': 'overviewPage',
+        'messages': 'messagesPage',
+        'analytics': 'analyticsPage',
+        'ai-chat': 'aiChatPage',
+        'profile': 'profilePage'
+    };
+    
+    const pageEl = document.getElementById(pageIdMap[page]);
+    if (pageEl) {
+        pageEl.classList.remove('hidden');
+        pageEl.style.display = 'block';
+    }
 
     // Reload messages if navigating to messages page
     if (page === 'messages') {
@@ -233,73 +279,308 @@ function updateMessageCount() {
     }
 }
 
-// AI Chat functions
-function sendTenantMessage() {
-    const input = document.getElementById('tenantChatInput');
-    const message = input?.value.trim();
+// AI Chat with OpenRouter API (NVIDIA Nemotron Model)
+async function sendTenantMessage() {
+    // Find the input element
+    let input = document.querySelector('#aiChatPage #tenantChatInput') || document.getElementById('tenantChatInput');
+    
+    // If still not found, try to find any input in the AI chat page
+    if (!input) {
+        const aiChatPage = document.getElementById('aiChatPage');
+        if (aiChatPage) {
+            input = aiChatPage.querySelector('input[type="text"]');
+        }
+    }
+    
+    if (!input) {
+        console.error('Chat input element not found');
+        showTenantChatError('Chat input not found. Please refresh the page.');
+        return;
+    }
+    
+    const message = input.value.trim();
 
-    if (!message) return;
+    if (!message) {
+        showTenantChatError('Please enter a message first.');
+        return;
+    }
+
+    // Validate message length
+    if (message.length > 2000) {
+        showTenantChatError('Message is too long. Please keep it under 2000 characters.');
+        return;
+    }
 
     analytics.queries++;
     updateAnalytics();
 
     // Add user message
     addTenantChatMessage(message, 'user');
-    if (input) input.value = '';
+    input.value = '';
 
     // Show loading
-    addTenantChatMessage('Thinking...', 'bot', true);
-
-    callTenantGeminiAPI(message).then(response => {
-        removeTenantLoadingMessage();
-        addTenantChatMessage(response, 'bot');
-    }).catch(() => {
-        removeTenantLoadingMessage();
-        addTenantChatMessage('Sorry, I encountered an error. Please try again.', 'bot');
-    });
-}
-
-async function callTenantGeminiAPI(prompt) {
-    const systemContext = `You are an AI assistant for ${currentTenant?.name}. Help the tenant with their questions about dashboard usage, analytics, and general assistance.`;
-    const fullPrompt = `${systemContext}\n\nUser question: ${prompt}`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
+    addTenantChatMessage('🤔 Thinking...', 'bot', true);
 
     try {
-        const response = await fetch(url, {
+        const response = await callTenantOpenRouterAPI(message);
+        removeTenantLoadingMessage();
+        
+        if (response && response.trim()) {
+            addTenantChatMessage(response, 'bot');
+        } else {
+            addTenantChatMessage('I received an empty response. Please try again.', 'bot');
+        }
+    } catch (error) {
+        console.error('AI Error:', error);
+        removeTenantLoadingMessage();
+        
+        let errorMessage = 'Sorry, I encountered an error. ';
+        if (error.name === 'TimeoutError') {
+            errorMessage += 'The request timed out. Please try again.';
+        } else if (error.message.includes('Failed to fetch')) {
+            errorMessage += 'Could not connect to the AI service. Please check your internet connection.';
+        } else {
+            errorMessage += 'Using fallback responses instead.';
+        }
+        
+        addTenantChatMessage(errorMessage, 'bot');
+        
+        // Also show fallback response
+        const fallback = getFallbackResponse(message);
+        setTimeout(() => addTenantChatMessage(fallback, 'bot'), 500);
+    }
+}
+
+/**
+ * Call OpenRouter API with NVIDIA Nemotron model for tenant
+ * @param {string} prompt - User's message
+ * @returns {Promise<string>} AI response
+ */
+async function callTenantOpenRouterAPI(prompt) {
+    // Validate input
+    if (!prompt || typeof prompt !== 'string') {
+        throw new Error('Invalid prompt: must be a non-empty string');
+    }
+    
+    const sanitizedPrompt = prompt.trim();
+    if (sanitizedPrompt.length === 0) {
+        throw new Error('Invalid prompt: must be a non-empty string');
+    }
+
+    const requestBody = {
+        model: OPENROUTER_MODEL,
+        messages: [
+            {
+                role: 'system',
+                content: TENANT_SYSTEM_PROMPT
+            },
+            {
+                role: 'user',
+                content: sanitizedPrompt
+            }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+    };
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'HTTP-Referer': window.location.href,
+                'X-Title': 'TenantHub'
             },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: fullPrompt }]
-                }]
-            })
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('OpenRouter API Error:', response.status, errorText);
+            throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+        }
 
         const data = await response.json();
 
-        if (data.candidates && data.candidates[0].content) {
-            return data.candidates[0].content.parts[0].text;
+        // Handle OpenRouter response format
+        if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+            return data.choices[0].message.content;
         }
 
-        throw new Error('Invalid response from API');
+        if (data.error) {
+            throw new Error(data.error.message || 'API returned an error');
+        }
+
+        // Fallback to other formats
+        if (data.response) {
+            return data.response;
+        }
+
+        if (typeof data === 'string') {
+            return data;
+        }
+
+        console.warn('Unexpected response format:', data);
+        return 'I received an unexpected response format. Please try again.';
+        
     } catch (error) {
-        console.error('AI API Error:', error);
+        if (error.name === 'AbortError') {
+            const timeoutError = new Error('Request timed out');
+            timeoutError.name = 'TimeoutError';
+            throw timeoutError;
+        }
+        console.error('OpenRouter API call failed:', error);
         throw error;
     }
 }
 
-function addTenantChatMessage(text, sender, isLoading = false) {
+/**
+ * Call n8n webhook (legacy fallback)
+ * @param {string} prompt - User's message
+ * @param {number} timeoutMs - Request timeout in milliseconds
+ * @returns {Promise<string>} AI response
+ */
+async function callTenantWebhook(prompt, timeoutMs = 30000) {
+    // Validate input
+    if (!prompt || typeof prompt !== 'string') {
+        throw new Error('Invalid prompt: must be a non-empty string');
+    }
+    
+    const sanitizedPrompt = prompt.trim();
+    if (sanitizedPrompt.length === 0) {
+        throw new Error('Invalid prompt: must be a non-empty string');
+    }
+
+    const url = `${TENANT_WEBHOOK_URL}?message=${encodeURIComponent(sanitizedPrompt)}`;
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Webhook Error:', response.status, errorText);
+            throw new Error(`Webhook Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        let data;
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            data = await response.text();
+        }
+
+        // Handle different response formats from n8n
+        // Direct string response
+        if (typeof data === 'string' && data.trim()) {
+            return data.trim();
+        }
+
+        // Standard response formats
+        if (data.response) {
+            return data.response;
+        }
+
+        if (data.body && data.body.response) {
+            return data.body.response;
+        }
+
+        if (data.text) {
+            return data.text;
+        }
+
+        if (data.message) {
+            return data.message;
+        }
+
+        if (data.output) {
+            return typeof data.output === 'string' ? data.output : JSON.stringify(data.output);
+        }
+
+        // Handle array response
+        if (Array.isArray(data) && data.length > 0) {
+            return typeof data[0] === 'string' ? data[0] : JSON.stringify(data[0]);
+        }
+
+        // If we got here, we couldn't parse the response
+        console.warn('Unexpected response format:', data);
+        return 'I received an unexpected response format. Please try again.';
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            const timeoutError = new Error('Request timed out');
+            timeoutError.name = 'TimeoutError';
+            throw timeoutError;
+        }
+        console.error('Webhook call failed:', error);
+        throw error;
+    }
+}
+
+// Legacy function for backwards compatibility
+async function callTenantWebhookWithTimeout(prompt, timeoutMs = 30000) {
+    // First try OpenRouter API
+    try {
+        return await callTenantOpenRouterAPI(prompt);
+    } catch (e) {
+        console.warn('OpenRouter failed, trying webhook:', e);
+        // Fallback to webhook
+        return callTenantWebhook(prompt, timeoutMs);
+    }
+}
+
+// Show error in tenant chat
+function showTenantChatError(message) {
     const messages = document.getElementById('tenantChatMessages');
     if (!messages) return;
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'message bot-message error';
+    errorDiv.innerHTML = `<div class="message-content" style="color: #e53e3e;">⚠️ ${message}</div>`;
+    messages.appendChild(errorDiv);
+    messages.scrollTop = messages.scrollHeight;
+    
+    // Auto-remove error after 5 seconds
+    setTimeout(() => errorDiv.remove(), 5000);
+}
+
+function addTenantChatMessage(text, sender, isLoading = false) {
+    const messages = document.getElementById('tenantChatMessages');
+    if (!messages) {
+        console.error('tenantChatMessages element not found!');
+        return;
+    }
 
     const div = document.createElement('div');
     div.className = `message ${sender}-message${isLoading ? ' loading' : ''}`;
     div.innerHTML = `<div class="message-content">${text}</div>`;
     messages.appendChild(div);
+    
+    // Force scroll to bottom
     messages.scrollTop = messages.scrollHeight;
+    
+    // Also try scrollIntoView
+    div.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
 function removeTenantLoadingMessage() {
@@ -315,11 +596,36 @@ function handleTenantKeyPress(event) {
 
 // Send suggestion to AI chat
 function sendSuggestion(text) {
-    const input = document.getElementById('tenantChatInput');
-    if (input) {
-        input.value = text;
-        sendTenantMessage();
-    }
+    // First navigate to AI chat page
+    navigateTo('ai-chat');
+    
+    // Small delay to allow page to switch
+    setTimeout(() => {
+        // Find the input element in the AI chat page
+        let input = document.querySelector('#aiChatPage #tenantChatInput');
+        
+        // If not found, try other selectors
+        if (!input) {
+            const aiChatPage = document.getElementById('aiChatPage');
+            if (aiChatPage) {
+                input = aiChatPage.querySelector('input[type="text"]');
+            }
+        }
+        
+        // Still not found? Try general search
+        if (!input) {
+            input = document.getElementById('tenantChatInput');
+        }
+        
+        if (input) {
+            input.value = text;
+            // Trigger the sendTenantMessage function
+            sendTenantMessage();
+        } else {
+            console.error('Could not find chat input');
+            showTenantChatError('Could not find chat input. Please navigate to AI Chat page.');
+        }
+    }, 100);
 }
 
 // Clear chat history
@@ -339,45 +645,7 @@ function clearTenantChat() {
     }
 }
 
-// Enhanced AI response with better error handling
-async function callTenantGeminiAPI(prompt) {
-    const systemContext = `You are an AI assistant for ${currentTenant?.name}. Help the tenant with their questions about dashboard usage, analytics, and general assistance. Be friendly, helpful, and concise.`;
-    const fullPrompt = `${systemContext}\n\nUser question: ${prompt}`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: fullPrompt }]
-                }]
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('API request failed');
-        }
-
-        const data = await response.json();
-
-        if (data.candidates && data.candidates[0].content) {
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        throw new Error('Invalid response from API');
-    } catch (error) {
-        console.error('AI API Error:', error);
-        // Return a fallback message when API fails
-        return getFallbackResponse(prompt);
-    }
-}
-
-// Fallback responses when API is unavailable
+// Fallback responses when webhook is unavailable
 function getFallbackResponse(prompt) {
     const lowerPrompt = prompt.toLowerCase();
     

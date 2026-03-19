@@ -53,7 +53,10 @@
                     <h1 id="pageTitle">Dashboard</h1>
                 </div>
                 <div class="top-bar-right">
-                    <div class="admin-profile">
+                    <a href="tenant.html" class="tenant-portal-link" title="Go to Tenant Portal" target="_blank">
+                        🚀 Tenant Portal
+                    </a>
+                    <div class="admin-profile" onclick="adminLogout()" style="cursor: pointer;" title="Click to logout">
                         <span class="admin-name">Admin User</span>
                         <span class="admin-avatar">👤</span>
                     </div>
@@ -64,28 +67,28 @@
             <div class="page-content" id="dashboardPage">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">👥</div>
+                        <div class="stat-icon blue">👥</div>
                         <div class="stat-info">
                             <h3 id="totalTenants">0</h3>
                             <p>Total Tenants</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">✅</div>
+                        <div class="stat-icon green">✅</div>
                         <div class="stat-info">
                             <h3 id="activeTenants">0</h3>
                             <p>Active Tenants</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">⏸️</div>
+                        <div class="stat-icon red">⏸️</div>
                         <div class="stat-info">
                             <h3 id="inactiveTenants">0</h3>
                             <p>Inactive Tenants</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">⏳</div>
+                        <div class="stat-icon yellow">⏳</div>
                         <div class="stat-info">
                             <h3 id="pendingTenants">0</h3>
                             <p>Pending Tenants</p>
@@ -174,9 +177,9 @@
                             </div>
                         </div>
                         <div class="chat-input-container">
-                            <textarea id="chatInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendMessageToTenant();}"></textarea>
-                            <button class="btn btn-primary" onclick="sendMessageToTenant()">Send</button>
-                        </div>
+                             <textarea id="tenantChatInput" placeholder="Type your message..." onkeypress="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendMessageToTenant();}"></textarea>
+                             <button class="btn btn-primary" onclick="sendMessageToTenant()">Send</button>
+                         </div>
                     </div>
                 </div>
             </div>
@@ -222,9 +225,11 @@
                             <button class="btn btn-primary" onclick="sendMessage()">Send</button>
                         </div>
                         <div class="chat-suggestions">
-                            <button class="suggestion-chip" onclick="sendAdminSuggestion('How to add a new tenant')">How to add a tenant?</button>
-                            <button class="suggestion-chip" onclick="sendAdminSuggestion('Reset tenant password')">Reset password</button>
-                            <button class="suggestion-chip" onclick="sendAdminSuggestion('Message all tenants')">Message all tenants</button>
+                            <button class="suggestion-chip" onclick="sendAdminSuggestion('Create a new tenant with name ABC Company, domain abc.com, email admin@abc.com')">➕ Create Tenant</button>
+                            <button class="suggestion-chip" onclick="sendAdminSuggestion('Show me all tenants with their status')">📋 List Tenants</button>
+                            <button class="suggestion-chip" onclick="sendAdminSuggestion('Show me analytics and statistics')">📊 Analytics</button>
+                            <button class="suggestion-chip" onclick="sendAdminSuggestion('How do I reset a tenant password?')">🔑 Reset Password</button>
+                            <button class="suggestion-chip" onclick="sendAdminSuggestion('How to message a tenant?')">💬 Message Tenant</button>
                         </div>
                     </div>
                 </div>
@@ -306,5 +311,15 @@
 
     <script src="database.js"></script>
     <script src="admin.js"></script>
+    <script>
+        // Check if admin is logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simple check - in production, use proper session management
+            const isAdminLoggedIn = localStorage.getItem('tenanthub_admin_logged_in');
+            if (!isAdminLoggedIn) {
+                // For demo purposes, we'll allow access but show admin profile
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,13 +1,42 @@
-// Admin Dashboard JavaScript - With Database & Messaging System
-const API_KEY = 'AIzaSyC8rlJJ26KYDbmr_NmcBQ1dFRUvvC5tKUA';
+// Admin Dashboard JavaScript - Browser-Based Multi-Tenant Management
 const ADMIN_ID = 0; // Admin user ID
+
+// System prompt to give AI context about the website
+const SYSTEM_PROMPT = `You are an AI Assistant for TenantHub - A Professional Multi-Tenant Management Platform.
+
+Website Information:
+- Name: TenantHub
+- URL: This is a multi-tenant management dashboard
+- Purpose: Manage tenants, track analytics, handle messaging between admin and tenants
+- Paths: /admin.html (Admin), /tenant.html (Tenant), /index.html (Login)
+
+Features Available:
+1. Tenant Management - Create, edit, delete, activate/deactivate tenants
+2. Analytics Dashboard - View tenant statistics, activity charts
+3. Messaging System - Chat between admin and tenants
+4. AI Assistant - Smart help for all platform features
+5. Profile Management - Update tenant details
+
+Your Capabilities:
+- Help admin with tenant management tasks
+- Create new tenants when requested (you can create them directly!)
+- Answer questions about the platform
+- Provide analytics and statistics
+- Guide users through features
+
+Be professional, helpful, and concise. Use markdown formatting.`;
 
 let currentPage = 'dashboard';
 let currentChatTenant = null;
 let chatHistory = [];
+let tenants = [];
+let messages = [];
 
 // Initialize
+
 document.addEventListener('DOMContentLoaded', () => {
+    loadTenantsFromStorage();
+    loadMessagesFromStorage();
     updateStats();
     renderDashboardTable();
     renderTenantsTable();
@@ -17,12 +46,52 @@ document.addEventListener('DOMContentLoaded', () => {
     updateMessageCount();
 });
 
+// Load tenants from localStorage
+function loadTenantsFromStorage() {
+    const stored = localStorage.getItem('tenanthub_tenants');
+    if (stored) {
+        tenants = JSON.parse(stored);
+    } else {
+        // Create default admin tenant
+        tenants = [{
+            id: 0,
+            name: 'Admin Tenant',
+            domain: 'admin.com',
+            email: 'admin@admin.com',
+            password: 'admin123',
+            status: 'active',
+            created: new Date().toISOString().split('T')[0]
+        }];
+        saveTenantsToStorage();
+    }
+}
+
+// Save tenants to localStorage
+function saveTenantsToStorage() {
+    localStorage.setItem('tenanthub_tenants', JSON.stringify(tenants));
+}
+
+// Load messages from localStorage
+function loadMessagesFromStorage() {
+    const stored = localStorage.getItem('tenanthub_messages');
+    if (stored) {
+        messages = JSON.parse(stored);
+    } else {
+        messages = [];
+    }
+}
+
+// Save messages to localStorage
+function saveMessagesToStorage() {
+    localStorage.setItem('tenanthub_messages', JSON.stringify(messages));
+}
+
 // Update statistics from database
 function updateStats() {
-    const totalTenants = db.count('tenants');
-    const activeTenants = db.query('tenants', { status: 'active' }).length;
-    const inactiveTenants = db.query('tenants', { status: 'inactive' }).length;
-    const pendingTenants = db.query('tenants', { status: 'pending' }).length;
+    const totalTenants = tenants.length;
+    const activeTenants = tenants.filter(t => t.status === 'active').length;
+    const inactiveTenants = tenants.filter(t => t.status === 'inactive').length;
+    const pendingTenants = tenants.filter(t => t.status === 'pending').length;
 
     document.getElementById('totalTenants').textContent = totalTenants;
     document.getElementById('activeTenants').textContent = activeTenants;
@@ -32,7 +101,7 @@ function updateStats() {
 
 // Update message count badge
 function updateMessageCount() {
-    const unreadCount = chat.getUnreadCount(ADMIN_ID);
+    const unreadCount = messages.filter(m => m.toId === ADMIN_ID && !m.read).length;
     const navItem = document.querySelector('[data-page="messages"]');
     if (navItem) {
         navItem.setAttribute('data-count', unreadCount);
@@ -42,7 +111,6 @@ function updateMessageCount() {
 // Render dashboard table
 function renderDashboardTable() {
     const tbody = document.getElementById('dashboardTableBody');
-    const tenants = db.getAll('tenants');
     const recent = tenants.slice(0, 5);
 
     tbody.innerHTML = recent.map(t => `
@@ -64,7 +132,6 @@ function renderDashboardTable() {
 // Render tenants table
 function renderTenantsTable() {
     const tbody = document.getElementById('tenantsTableBody');
-    const tenants = db.getAll('tenants');
 
     tbody.innerHTML = tenants.map(t => `
         <tr>
@@ -88,17 +155,16 @@ function loadTenantList() {
     const tenantList = document.getElementById('tenantList');
     if (!tenantList) return;
 
-    const tenants = db.getAll('tenants');
-
     tenantList.innerHTML = tenants.map(t => {
-        const lastMessage = chat.getInbox(t.id).slice(0, 1)[0];
-        const unreadCount = chat.getUnreadCount(ADMIN_ID);
+        const lastMessage = messages.filter(m => m.toId === t.id || m.fromId === t.id).slice(-1)[0];
+        const unreadCount = messages.filter(m => m.toId === t.id && !m.read).length;
         const initials = t.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
         return `
             <li class="tenant-item" onclick="openChatWithTenant(${t.id})" data-tenant-id="${t.id}">
                 <div class="tenant-name">${t.name}</div>
                 ${lastMessage ? `<div class="last-message">${lastMessage.content}</div>` : '<div class="last-message">No messages yet</div>'}
+                ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
             </li>
         `;
     }).join('');
@@ -107,7 +173,7 @@ function loadTenantList() {
 // Open chat with specific tenant
 function openChatWithTenant(tenantId) {
     currentChatTenant = tenantId;
-    const tenant = db.get('tenants', tenantId);
+    const tenant = tenants.find(t => t.id === tenantId);
 
     // Update UI
     document.querySelectorAll('.tenant-item').forEach(el => {
@@ -130,13 +196,21 @@ function openChatWithTenant(tenantId) {
     loadConversation(tenantId);
 
     // Mark messages as read
-    chat.markAllAsRead(ADMIN_ID);
+    messages.forEach(m => {
+        if (m.toId === ADMIN_ID && m.fromId === tenantId) {
+            m.read = true;
+        }
+    });
+    saveMessagesToStorage();
     updateMessageCount();
 }
 
 // Load conversation history
 function loadConversation(tenantId) {
-    const conversation = chat.getConversation(ADMIN_ID, tenantId);
+    const conversation = messages.filter(m => 
+        (m.fromId === ADMIN_ID && m.toId === tenantId) || 
+        (m.fromId === tenantId && m.toId === ADMIN_ID)
+    );
     const container = document.getElementById('chatConversation');
 
     if (!container) return;
@@ -166,13 +240,22 @@ function loadConversation(tenantId) {
 
 // Send message to tenant
 function sendMessageToTenant() {
-    const input = document.getElementById('chatInput');
+    const input = document.getElementById('tenantChatInput');
     const message = input.value.trim();
 
     if (!message || !currentChatTenant) return;
 
-    // Save to database
-    chat.send(ADMIN_ID, currentChatTenant, message);
+    // Save to messages
+    const newMessage = {
+        id: Date.now(),
+        fromId: ADMIN_ID,
+        toId: currentChatTenant,
+        content: message,
+        timestamp: new Date().toISOString(),
+        read: false
+    };
+    messages.push(newMessage);
+    saveMessagesToStorage();
 
     // Reload conversation
     loadConversation(currentChatTenant);
@@ -213,11 +296,25 @@ function navigateTo(page) {
     };
     document.getElementById('pageTitle').textContent = titles[page] || page;
 
-    // Show correct page
-    document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-    const pageEl = document.getElementById(`${page}Page`);
+    // Hide all pages first
+    document.querySelectorAll('.page-content').forEach(p => {
+        p.classList.add('hidden');
+        p.style.display = 'none';
+    });
+    
+    // Map page names to element IDs
+    const pageIdMap = {
+        'dashboard': 'dashboardPage',
+        'tenants': 'tenantsPage',
+        'messages': 'messagesPage',
+        'ai-assistant': 'aiPage',
+        'settings': 'settingsPage'
+    };
+    
+    const pageEl = document.getElementById(pageIdMap[page]);
     if (pageEl) {
         pageEl.classList.remove('hidden');
+        pageEl.style.display = 'block';
     }
 
     // Special handling for messages page
@@ -253,7 +350,7 @@ function closeTenantModal() {
 
 // Edit tenant
 function editTenant(id) {
-    const tenant = db.get('tenants', id);
+    const tenant = tenants.find(t => t.id === id);
     if (tenant) {
         document.getElementById('tenantId').value = tenant.id;
         document.getElementById('tenantName').value = tenant.name;
@@ -271,7 +368,8 @@ function editTenant(id) {
 // Delete tenant
 function deleteTenant(id) {
     if (confirm('Are you sure you want to delete this tenant? This action cannot be undone.')) {
-        db.delete('tenants', id);
+        tenants = tenants.filter(t => t.id !== id);
+        saveTenantsToStorage();
         updateStats();
         renderDashboardTable();
         renderTenantsTable();
@@ -281,19 +379,18 @@ function deleteTenant(id) {
 
 // Generate credentials
 function generateCredentials(id) {
-    const tenant = db.get('tenants', id);
+    const tenant = tenants.find(t => t.id === id);
     if (tenant) {
         const newPassword = Math.random().toString(36).slice(-8);
-        db.update('tenants', id, { password: newPassword });
+        tenant.password = newPassword;
+        saveTenantsToStorage();
 
-        const users = db.getAll('users');
-        const tenantUser = users.tenants?.find(t => t.id === id);
-        if (tenantUser) {
-            tenantUser.password = newPassword;
-            localStorage.setItem('tenanthub_users', JSON.stringify(users));
-        }
+        alert(`Credentials for ${tenant.name}:
 
-        alert(`Credentials for ${tenant.name}:\n\nEmail: ${tenant.email}\nPassword: ${newPassword}\n\nTenant Dashboard URL: tenant.html`);
+Email: ${tenant.email}
+Password: ${newPassword}
+
+Tenant Dashboard URL: tenant.html`);
     }
 }
 
@@ -327,7 +424,10 @@ function filterTenants() {
     const search = document.getElementById('searchInput').value.toLowerCase();
     const status = document.getElementById('statusFilter').value;
 
-    let filtered = db.query('tenants', { status: status || undefined });
+    let filtered = tenants;
+    if (status) {
+        filtered = filtered.filter(t => t.status === status);
+    }
 
     if (search) {
         filtered = filtered.filter(t =>
@@ -374,11 +474,16 @@ function handleFormSubmit(e) {
     };
 
     if (id) {
-        db.update('tenants', id, tenantData);
+        const index = tenants.findIndex(t => t.id === parseInt(id));
+        if (index !== -1) {
+            tenants[index] = { ...tenants[index], ...tenantData };
+        }
     } else {
-        db.create('tenants', tenantData);
+        tenantData.id = Date.now();
+        tenants.push(tenantData);
     }
 
+    saveTenantsToStorage();
     updateStats();
     renderDashboardTable();
     renderTenantsTable();
@@ -394,64 +499,302 @@ window.onclick = function(event) {
     }
 }
 
-// Gemini AI Integration
-async function sendMessage() {
-    const input = document.getElementById('chatInput');
+// AI Chat (browser-based)
+function sendMessage() {
+    // Find the input element - check both textarea and input types
+    let input = document.querySelector('#aiPage #chatInput') || document.getElementById('chatInput');
+    
+    // If still not found, try to find any input/textarea in the AI page
+    if (!input) {
+        const aiPage = document.getElementById('aiPage');
+        if (aiPage) {
+            input = aiPage.querySelector('input[type="text"]') || aiPage.querySelector('textarea');
+        }
+    }
+    
+    if (!input) {
+        console.error('Chat input element not found');
+        return;
+    }
+    
     const message = input.value.trim();
 
-    if (!message) return;
+    if (!message) {
+        showChatError('Please enter a message first.');
+        return;
+    }
+
+    // Validate message length
+    if (message.length > 2000) {
+        showChatError('Message is too long. Please keep it under 2000 characters.');
+        return;
+    }
 
     // Add user message
     addChatMessage(message, 'user');
     input.value = '';
 
     // Show loading
-    addChatMessage('Thinking...', 'bot', true);
+    addChatMessage('🤔 Processing...', 'bot', true);
 
+    // Handle admin commands
+    handleAdminCommand(message).then(result => {
+        removeLoadingMessage();
+        if (result.handled) {
+            addChatMessage(result.message, 'bot');
+        } else {
+            // Fallback response
+            const fallback = getAdminFallbackResponse(message);
+            addChatMessage(fallback, 'bot');
+        }
+    }).catch(error => {
+        console.error('AI Error:', error);
+        removeLoadingMessage();
+        showChatError('Sorry, I encountered an error. Using fallback responses instead.');
+        const fallback = getAdminFallbackResponse(message);
+        setTimeout(() => addChatMessage(fallback, 'bot'), 500);
+    });
+}
+
+// Handle admin commands directly (create, delete, update tenants)
+async function handleAdminCommand(message) {
+    const lowerMessage = message.toLowerCase();
+    
+    // CREATE TENANT commands
+    const createKeywords = ['create tenant', 'add tenant', 'new tenant', 'register tenant', 'add new tenant', 'create new tenant'];
+    if (createKeywords.some(keyword => lowerMessage.includes(keyword))) {
+        return await createTenantFromMessage(message);
+    }
+    
+    // DELETE TENANT commands
+    const deleteKeywords = ['delete tenant', 'remove tenant', 'delete', 'remove'];
+    if (deleteKeywords.some(keyword => lowerMessage.includes(keyword))) {
+        return await deleteTenantFromMessage(message);
+    }
+    
+    // UPDATE TENANT commands
+    const updateKeywords = ['update tenant', 'edit tenant', 'change tenant', 'modify tenant'];
+    if (updateKeywords.some(keyword => lowerMessage.includes(keyword))) {
+        return await updateTenantFromMessage(message);
+    }
+    
+    // RESET PASSWORD commands
+    const resetKeywords = ['reset password', 'change password', 'new password', 'generate password'];
+    if (resetKeywords.some(keyword => lowerMessage.includes(keyword))) {
+        return await resetTenantPassword(message);
+    }
+    
+    // Not a command
+    return { handled: false, message: '' };
+}
+
+// Create tenant from message
+async function createTenantFromMessage(message) {
+    // Extract tenant info from message
+    const nameMatch = message.match(/(?:name|called|tenant|company|organization)[\s:]+([A-Za-z0-9\s]+?)(?:domain|email|@|\.|with|for|$)/i);
+    const domainMatch = message.match(/(?:domain|at|\.){1}([a-z0-9]+\.[a-z]+)/i);
+    const emailMatch = message.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+    
+    const name = nameMatch ? nameMatch[1].trim() : null;
+    const domain = domainMatch ? domainMatch[1].trim() : null;
+    const email = emailMatch ? emailMatch[1].trim() : null;
+    
+    // Validate required fields
+    if (!name) {
+        return {
+            handled: true,
+            message: "⚠️ I need more information to create a tenant.\n\nPlease provide:\n- **Tenant Name** (required)\n- Domain (optional)\n- Admin Email (optional)\n\nExample: 'Create a tenant named ABC Company with domain abc.com'"
+        };
+    }
+    
+    const tenantData = {
+        name: name,
+        domain: domain || name.toLowerCase().replace(/\s+/g, '') + '.com',
+        email: email || 'admin@' + (domain || name.toLowerCase().replace(/\s+/g, '') + '.com'),
+        password: Math.random().toString(36).slice(-8),
+        status: 'active',
+        created: new Date().toISOString().split('T')[0]
+    };
+    
     try {
-        const response = await callGeminiAPI(message);
-        removeLoadingMessage();
-        addChatMessage(response, 'bot');
-    } catch (error) {
-        removeLoadingMessage();
-        addChatMessage('Sorry, I encountered an error. Please try again.', 'bot');
+        tenantData.id = Date.now();
+        tenants.push(tenantData);
+        saveTenantsToStorage();
+        updateStats();
+        renderDashboardTable();
+        renderTenantsTable();
+        loadTenantList();
+        
+        return {
+            handled: true,
+            message: `✅ **Tenant Created Successfully!**\n\n**Details:**\n- 🏢 **Name:** ${tenantData.name}\n- 🌐 **Domain:** ${tenantData.domain}\n- 📧 **Email:** ${tenantData.email}\n- 🔑 **Password:** ${tenantData.password}\n- ✅ **Status:** Active\n\nThe tenant can now login with these credentials!`
+        };
+    } catch (e) {
+        console.error('Tenant creation failed:', e);
+        return {
+            handled: true,
+            message: '❌ Failed to create tenant. Please try again or use the manual form.'
+        };
     }
 }
 
-async function callGeminiAPI(prompt) {
-    const systemContext = 'You are an AI assistant helping with tenant management. You can help with creating tenants, managing access, generating credentials, and providing insights about tenant usage.';
-    const fullPrompt = `${systemContext}\n\nUser question: ${prompt}`;
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: fullPrompt }]
-                }]
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('API request failed');
-        }
-
-        const data = await response.json();
-
-        if (data.candidates && data.candidates[0].content) {
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        throw new Error('Invalid response from API');
-    } catch (error) {
-        console.error('AI API Error:', error);
-        return getAdminFallbackResponse(prompt);
+// Delete tenant from message
+async function deleteTenantFromMessage(message) {
+    // Try to find tenant name or domain in message
+    const nameMatch = message.match(/(?:tenant|company|name)[:\s]+([A-Za-z0-9\s]+?)(?:$|\?|with|for)/i);
+    const domainMatch = message.match(/(?:domain|at)[:\s]*([a-z0-9]+\.[a-z]+)/i);
+    
+    let tenantToDelete = null;
+    
+    if (nameMatch) {
+        const searchName = nameMatch[1].trim().toLowerCase();
+        tenantToDelete = tenants.find(t => t.name.toLowerCase().includes(searchName));
     }
+    
+    if (!tenantToDelete && domainMatch) {
+        const searchDomain = domainMatch[1].trim().toLowerCase();
+        tenantToDelete = tenants.find(t => t.domain.toLowerCase().includes(searchDomain));
+    }
+    
+    if (!tenantToDelete) {
+        // List available tenants
+        if (tenants.length === 0) {
+            return { handled: true, message: '❌ No tenants found in the system.' };
+        }
+        
+        const tenantList = tenants.map(t => t.name + ' (' + t.domain + ')').join('\n');
+        return {
+            handled: true,
+            message: `⚠️ I couldn't find which tenant to delete.\n\n**Available Tenants:**\n${tenantList}\n\nPlease specify the tenant name or domain.\nExample: 'Delete tenant ABC Company' or 'Delete tenant with domain abc.com'`
+        };
+    }
+    
+    // Confirm deletion
+    try {
+        tenants = tenants.filter(t => t.id !== tenantToDelete.id);
+        saveTenantsToStorage();
+        updateStats();
+        renderDashboardTable();
+        renderTenantsTable();
+        loadTenantList();
+        
+        return {
+            handled: true,
+            message: `✅ **Tenant Deleted Successfully!**\n\n**Deleted:**\n- 🏢 ${tenantToDelete.name}\n- 🌐 ${tenantToDelete.domain}\n\nThe tenant has been removed from the system.`
+        };
+    } catch (e) {
+        return { handled: true, message: '❌ Failed to delete tenant. Please try again.' };
+    }
+}
+
+// Update tenant from message
+async function updateTenantFromMessage(message) {
+    const nameMatch = message.match(/(?:tenant|company|name)[:\s]+([A-Za-z0-9\s]+?)(?:$|\?|with|for)/i);
+    let tenantToUpdate = null;
+    
+    if (nameMatch) {
+        const searchName = nameMatch[1].trim().toLowerCase();
+        tenantToUpdate = tenants.find(t => t.name.toLowerCase().includes(searchName));
+    }
+    
+    if (!tenantToUpdate) {
+        const tenantList = tenants.map(t => `• **${t.name}** (${t.domain})`).join('\n');
+        return {
+            handled: true,
+            message: `⚠️ I couldn't find which tenant to update.\n\n**Available Tenants:**\n${tenantList}\n\nPlease specify the tenant name.\nExample: 'Update tenant ABC Company with new email admin@new.com'`
+        };
+    }
+    
+    // Extract updates
+    const newEmailMatch = message.match(/email[:\s]*([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+    const newDomainMatch = message.match(/domain[:\s]*([a-z0-9]+\.[a-z]+)/i);
+    const newStatusMatch = message.match(/status[:\s]*(active|inactive|pending)/i);
+    
+    const updates = {};
+    if (newEmailMatch) updates.email = newEmailMatch[1];
+    if (newDomainMatch) updates.domain = newDomainMatch[1];
+    if (newStatusMatch) updates.status = newStatusMatch[1];
+    
+    if (Object.keys(updates).length === 0) {
+        return {
+            handled: true,
+            message: `⚠️ What would you like to update for ${tenantToUpdate.name}?\n\n**Current Details:**\n- Email: ${tenantToUpdate.email}\n- Domain: ${tenantToUpdate.domain}\n- Status: ${tenantToUpdate.status}\n\nPlease specify what to change.\nExample: Update tenant ABC Company with email new@email.com`
+        };
+    }
+    
+    try {
+        const index = tenants.findIndex(t => t.id === tenantToUpdate.id);
+        if (index !== -1) {
+            tenants[index] = { ...tenants[index], ...updates };
+            saveTenantsToStorage();
+            updateStats();
+            renderDashboardTable();
+            renderTenantsTable();
+            loadTenantList();
+            
+            const updatedTenant = tenants[index];
+            let details = '';
+            if (updates.email) details += '- 📧 Email: ' + updates.email + '\n';
+            if (updates.domain) details += '- 🌐 Domain: ' + updates.domain + '\n';
+            if (updates.status) details += '- ✅ Status: ' + updates.status + '\n';
+            return {
+                handled: true,
+                message: `✅ **Tenant Updated Successfully!**\n\n**Updated:** ${updatedTenant.name}\n\n**New Details:**\n${details}`
+            };
+        }
+    } catch (e) {
+        return { handled: true, message: '❌ Failed to update tenant. Please try again.' };
+    }
+}
+
+// Reset tenant password
+async function resetTenantPassword(message) {
+    const nameMatch = message.match(/(?:tenant|company|name)[:\s]+([A-Za-z0-9\s]+?)(?:$|\?|for)/i);
+    let tenantToReset = null;
+    
+    if (nameMatch) {
+        const searchName = nameMatch[1].trim().toLowerCase();
+        tenantToReset = tenants.find(t => t.name.toLowerCase().includes(searchName));
+    }
+    
+    if (!tenantToReset) {
+        const tenantList = tenants.map(t => '• **' + t.name + '**').join('\n');
+        return {
+            handled: true,
+            message: `⚠️ I couldn't find which tenant's password to reset.\n\n**Available Tenants:**\n${tenantList}\n\nPlease specify the tenant name.\nExample: 'Reset password for ABC Company'`
+        };
+    }
+    
+    try {
+        const newPassword = Math.random().toString(36).slice(-8);
+        const index = tenants.findIndex(t => t.id === tenantToReset.id);
+        if (index !== -1) {
+            tenants[index].password = newPassword;
+            saveTenantsToStorage();
+            
+            return {
+                handled: true,
+                message: `✅ **Password Reset Successfully!**\n\n**Tenant:** ${tenantToReset.name}\n\n🔐 **New Password:** ${newPassword}\n\nPlease share this password with the tenant securely.`
+            };
+        }
+    } catch (e) {
+        return { handled: true, message: '❌ Failed to reset password. Please try again.' };
+    }
+}
+
+// Show error in chat
+function showChatError(message) {
+    const messages = document.getElementById('chatMessages');
+    if (!messages) return;
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'message bot-message error';
+    errorDiv.innerHTML = `<div class="message-content" style="color: #e53e3e;">⚠️ ${message}</div>`;
+    messages.appendChild(errorDiv);
+    messages.scrollTop = messages.scrollHeight;
+    
+    // Auto-remove error after 5 seconds
+    setTimeout(() => errorDiv.remove(), 5000);
 }
 
 // Fallback responses when API is unavailable
@@ -462,7 +805,7 @@ function getAdminFallbackResponse(prompt) {
     if (lowerPrompt.includes('create') || lowerPrompt.includes('add') || lowerPrompt.includes('new tenant')) {
         // Extract tenant info from prompt
         const nameMatch = prompt.match(/(?:name|called|tenant[:\s]+)([A-Za-z\s]+?)(?:domain|email|@|$)/i);
-        const domainMatch = prompt.match(/(?:domain|at|\.)([a-z0-9]+\.[a-z]+)/i);
+        const domainMatch = prompt.match(/(?:domain|at|\.){1}([a-z0-9]+\.[a-z]+)/i);
         const emailMatch = prompt.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
         
         if (nameMatch || domainMatch || emailMatch) {
@@ -476,7 +819,9 @@ function getAdminFallbackResponse(prompt) {
             };
             
             try {
-                db.create('tenants', tenantData);
+                tenantData.id = Date.now();
+                tenants.push(tenantData);
+                saveTenantsToStorage();
                 updateStats();
                 renderDashboardTable();
                 renderTenantsTable();
@@ -503,7 +848,7 @@ function getAdminFallbackResponse(prompt) {
     }
     
     if (lowerPrompt.includes('analytics') || lowerPrompt.includes('stats') || lowerPrompt.includes('report') || lowerPrompt.includes('dashboard')) {
-        const stats = db.getAll('tenants');
+        const stats = tenants;
         const active = stats.filter(t => t.status === 'active').length;
         const inactive = stats.filter(t => t.status === 'inactive').length;
         const pending = stats.filter(t => t.status === 'pending').length;
@@ -512,11 +857,11 @@ function getAdminFallbackResponse(prompt) {
     }
     
     if (lowerPrompt.includes('list') || lowerPrompt.includes('show') && lowerPrompt.includes('tenant')) {
-        const tenants = db.getAll('tenants');
-        if (tenants.length === 0) return 'No tenants found.';
+        const tenantsList = tenants;
+        if (tenantsList.length === 0) return 'No tenants found.';
         
         let list = '📋 **Tenant List:**\n\n';
-        tenants.forEach(t => {
+        tenantsList.forEach(t => {
             list += `• **${t.name}** (${t.domain}) - ${t.status.toUpperCase()}\n`;
         });
         return list;
@@ -526,33 +871,35 @@ function getAdminFallbackResponse(prompt) {
         return "To edit a tenant:\n1. Go to the **Tenants** page\n2. Find the tenant\n3. Click **'Edit'** button\n4. Modify the details\n5. Click **Save**";
     }
     
-    if (lowerPrompt.includes('status') && (lowerPrompt.includes('change') || lowerPrompt.includes('set'))) {
-        return "To change tenant status:\n1. Go to the **Tenants** page\n2. Click **Edit** on the tenant\n3. Change the **Status** dropdown\n4. Options: Active, Inactive, Pending\n5. Click **Save**";
     }
-    
-    if (lowerPrompt.includes('hello') || lowerPrompt.includes('hi') || lowerPrompt.includes('hey') || lowerPrompt.includes('help')) {
-        return `Hello! 👋 I'm your powerful AI assistant!\n\n**I can help you:**\n\n🆕 **Create tenants** - Just tell me the name, domain, and email\n👥 **List all tenants** - Ask me to show tenants\n✏️ **Edit tenants** - I'll guide you\n🗑️ **Delete tenants** - With confirmation\n🔑 **Reset passwords** - Generate new credentials\n💬 **Message tenants** - Start a conversation\n📊 **View analytics** - See your statistics\n⚙️ **Change status** - Activate/deactivate tenants\n\n**Try:** "Create a new tenant called ABC Corp with domain abc.com and email admin@abc.com"\n\nWhat would you like to do?`;
-    }
-    
-    return `I can help you with:\n\n🆕 **Create tenants** - "Create a new tenant..."\n👥 **List tenants** - "Show me all tenants"\n✏️ **Edit tenants** - "Edit tenant..."\n🗑️ **Delete tenants** - "Delete tenant..."\n🔑 **Reset passwords** - "Reset password for..."\n💬 **Message tenants** - "Send message to..."\n📊 **Analytics** - "Show analytics"\n⚙️ **Change status** - "Change status to..."\n\nWhat would you like to do?`;
-}
 
+// Add chat message to conversation
 function addChatMessage(text, sender, isLoading = false) {
     const messages = document.getElementById('chatMessages');
-    if (!messages) return;
+    if (!messages) {
+        console.error('chatMessages element not found!');
+        return;
+    }
 
     const div = document.createElement('div');
     div.className = `message ${sender}-message${isLoading ? ' loading' : ''}`;
     div.innerHTML = `<div class="message-content">${text}</div>`;
     messages.appendChild(div);
+    
+    // Force scroll to bottom
     messages.scrollTop = messages.scrollHeight;
+    
+    // Also try scrollIntoView
+    div.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
+// Remove loading message
 function removeLoadingMessage() {
     const loading = document.querySelector('.message.loading');
     if (loading) loading.remove();
 }
 
+// Handle key press events
 function handleKeyPress(event) {
     if (event.key === 'Enter') {
         sendMessage();
@@ -567,11 +914,36 @@ function toggleApiKey() {
 
 // Send suggestion to AI chat
 function sendAdminSuggestion(text) {
-    const input = document.getElementById('chatInput');
-    if (input) {
-        input.value = text;
-        sendMessage();
-    }
+    // First navigate to AI page
+    navigateTo('ai-assistant');
+    
+    // Small delay to allow page to switch
+    setTimeout(() => {
+        // Find the input element in the AI page
+        let input = document.querySelector('#aiPage #chatInput');
+        
+        // If not found, try other selectors
+        if (!input) {
+            const aiPage = document.getElementById('aiPage');
+            if (aiPage) {
+                input = aiPage.querySelector('input[type="text"]');
+            }
+        }
+        
+        // Still not found? Try general search
+        if (!input) {
+            input = document.getElementById('chatInput');
+        }
+        
+        if (input) {
+            input.value = text;
+            // Trigger the sendMessage function
+            sendMessage();
+        } else {
+            console.error('Could not find chat input');
+            showChatError('Could not find chat input. Please navigate to AI Assistant page.');
+        }
+    }, 100);
 }
 
 // Clear admin chat history
@@ -602,3 +974,15 @@ document.addEventListener('keydown', (e) => {
         openTenantModal();
     }
 });
+
+// Admin logout function
+function adminLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('tenanthub_admin_logged_in');
+        window.location.href = 'index.html';
+    }
+}
+
+// Initialize tenants and messages
+loadTenantsFromStorage();
+loadMessagesFromStorage();
