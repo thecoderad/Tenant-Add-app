@@ -1,6 +1,10 @@
 // Admin Dashboard JavaScript - Browser-Based Multi-Tenant Management
 const ADMIN_ID = 0; // Admin user ID
 
+// OpenRouter API Configuration
+const OPENROUTER_API_KEY = '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';
+const OPENROUTER_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+
 // System prompt to give AI context about the website
 const SYSTEM_PROMPT = `You are an AI Assistant for TenantHub - A Professional Multi-Tenant Management Platform.
 
@@ -505,7 +509,7 @@ window.onclick = function(event) {
     }
 }
 
-// AI Chat (browser-based)
+// AI Chat (browser-based) with OpenRouter API
 function sendMessage() {
     // Find the input element - check both textarea and input types
     let input = document.querySelector('#aiPage #chatInput') || document.getElementById('chatInput');
@@ -543,23 +547,127 @@ function sendMessage() {
     // Show loading
     addChatMessage('🤔 Processing...', 'bot', true);
 
-    // Handle admin commands
+    // Handle admin commands first
     handleAdminCommand(message).then(result => {
-        removeLoadingMessage();
         if (result.handled) {
+            removeLoadingMessage();
             addChatMessage(result.message, 'bot');
         } else {
-            // Fallback response
-            const fallback = getAdminFallbackResponse(message);
-            addChatMessage(fallback, 'bot');
+            // Try OpenRouter API
+            callOpenRouterAPI(message).then(response => {
+                removeLoadingMessage();
+                if (response && response.trim()) {
+                    addChatMessage(response, 'bot');
+                } else {
+                    // Fallback response
+                    const fallback = getAdminFallbackResponse(message);
+                    addChatMessage(fallback, 'bot');
+                }
+            }).catch(error => {
+                console.error('AI Error:', error);
+                removeLoadingMessage();
+                showChatError('Sorry, I encountered an error. Using fallback responses instead.');
+                const fallback = getAdminFallbackResponse(message);
+                setTimeout(() => addChatMessage(fallback, 'bot'), 500);
+            });
         }
     }).catch(error => {
-        console.error('AI Error:', error);
+        console.error('Command Error:', error);
         removeLoadingMessage();
         showChatError('Sorry, I encountered an error. Using fallback responses instead.');
         const fallback = getAdminFallbackResponse(message);
         setTimeout(() => addChatMessage(fallback, 'bot'), 500);
     });
+}
+
+/**
+ * Call OpenRouter API with NVIDIA Nemotron model
+ * @param {string} prompt - User's message
+ * @returns {Promise<string>} AI response
+ */
+async function callOpenRouterAPI(prompt) {
+    // Validate input
+    if (!prompt || typeof prompt !== 'string') {
+        throw new Error('Invalid prompt: must be a non-empty string');
+    }
+    
+    const sanitizedPrompt = prompt.trim();
+    if (sanitizedPrompt.length === 0) {
+        throw new Error('Invalid prompt: must be a non-empty string');
+    }
+
+    const requestBody = {
+        model: OPENROUTER_MODEL,
+        messages: [
+            {
+                role: 'system',
+                content: SYSTEM_PROMPT
+            },
+            {
+                role: 'user',
+                content: sanitizedPrompt
+            }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+    };
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'HTTP-Referer': window.location.href || 'https://tenanthub.com',
+                'X-Title': 'TenantHub Admin'
+            },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('OpenRouter API Error:', response.status, errorText);
+            throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Handle OpenRouter response format
+        if (data.choices && data.choices.length > 0 && data.choices[0].message && data.choices[0].message.content) {
+            return data.choices[0].message.content;
+        }
+
+        if (data.error) {
+            throw new Error(data.error.message || 'API returned an error');
+        }
+
+        // Fallback to other formats
+        if (data.response) {
+            return data.response;
+        }
+
+        if (typeof data === 'string') {
+            return data;
+        }
+
+        console.warn('Unexpected response format:', data);
+        return 'I received an unexpected response format. Please try again.';
+        
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            const timeoutError = new Error('Request timed out');
+            timeoutError.name = 'TimeoutError';
+            throw timeoutError;
+        }
+        console.error('OpenRouter API call failed:', error);
+        throw error;
+    }
 }
 
 // Handle admin commands directly (create, delete, update tenants)

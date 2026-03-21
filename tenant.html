@@ -257,7 +257,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             const currentTenant = sessionStorage.getItem('currentTenant');
             if (!currentTenant) {
-                // Not logged in, redirect to login
                 window.location.href = 'index.html?redirect=tenant';
             }
         });

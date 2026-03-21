@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:web-app.bravepond-fe6cc95a.eastus2.azurecontainerapps.io)"
+      "Bash(dir)",
+      "Bash(start index.html)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
     ]
+  },
+  "env": {
+    "AI_KEY": "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"
   }
 }

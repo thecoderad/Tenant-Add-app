@@ -317,7 +317,7 @@
             // Simple check - in production, use proper session management
             const isAdminLoggedIn = localStorage.getItem('tenanthub_admin_logged_in');
             if (!isAdminLoggedIn) {
-                // For demo purposes, we'll allow access but show admin profile
+                window.location.href = 'index.html?redirect=admin';
             }
         });
     </script>
