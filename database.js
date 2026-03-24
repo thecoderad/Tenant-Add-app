@@ -1,14 +1,16 @@
-// LocalStorage Database System
-// Provides persistent data storage across page refreshes
+// ═══════════════════════════════════════════════════════════════
+// TenantHub Database System - LocalStorage Persistent Storage
+// ═══════════════════════════════════════════════════════════════
 
 const DB_KEYS = {
     TENANTS: 'tenanthub_tenants',
     MESSAGES: 'tenanthub_messages',
     USERS: 'tenanthub_users',
-    SETTINGS: 'tenanthub_settings'
+    SETTINGS: 'tenanthub_settings',
+    ANALYTICS: 'tenanthub_analytics'
 };
 
-// Initialize database with default data if empty
+// Initialize database with default data
 function initDatabase() {
     if (!localStorage.getItem(DB_KEYS.TENANTS)) {
         const defaultTenants = [
@@ -47,7 +49,7 @@ function initDatabase() {
 
     if (!localStorage.getItem(DB_KEYS.SETTINGS)) {
         const defaultSettings = {
-            theme: 'light',
+            theme: 'dark',
             notifications: true,
             sessionTimeout: 30,
             defaultStatus: 'pending',
@@ -58,11 +60,15 @@ function initDatabase() {
         };
         localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(defaultSettings));
     }
+
+    if (!localStorage.getItem(DB_KEYS.ANALYTICS)) {
+        const defaultAnalytics = {};
+        localStorage.setItem(DB_KEYS.ANALYTICS, JSON.stringify(defaultAnalytics));
+    }
 }
 
-// Generic CRUD operations
+// Database CRUD operations
 const db = {
-    // Create
     create(collection, item) {
         const items = this.getAll(collection);
         const newId = Math.max(...items.map(i => i.id || 0), 0) + 1;
@@ -72,7 +78,6 @@ const db = {
         return newItem;
     },
 
-    // Read
     get(collection, id) {
         const items = this.getAll(collection);
         return items.find(item => item.id === parseInt(id));
@@ -83,18 +88,15 @@ const db = {
         return data ? JSON.parse(data) : [];
     },
 
-    // Update
     update(collection, id, updates) {
         const items = this.getAll(collection);
         const index = items.findIndex(item => item.id === parseInt(id));
         if (index === -1) return null;
-
         items[index] = { ...items[index], ...updates, updatedAt: new Date().toISOString() };
         localStorage.setItem(DB_KEYS[collection.toUpperCase()], JSON.stringify(items));
         return items[index];
     },
 
-    // Delete
     delete(collection, id) {
         const items = this.getAll(collection);
         const filtered = items.filter(item => item.id !== parseInt(id));
@@ -102,10 +104,8 @@ const db = {
         return true;
     },
 
-    // Query with filters
     query(collection, filters = {}) {
         let items = this.getAll(collection);
-
         for (const [key, value] of Object.entries(filters)) {
             if (value) {
                 items = items.filter(item => {
@@ -116,26 +116,12 @@ const db = {
                 });
             }
         }
-
         return items;
     },
 
-    // Sort
-    sort(collection, field, order = 'asc') {
-        const items = this.getAll(collection);
-        return items.sort((a, b) => {
-            if (order === 'asc') {
-                return a[field] > b[field] ? 1 : -1;
-            }
-            return a[field] < b[field] ? 1 : -1;
-        });
-    },
-
-    // Search
     search(collection, query, fields = []) {
         const items = this.getAll(collection);
         const searchQuery = query.toLowerCase();
-
         return items.filter(item => {
             if (fields.length === 0) {
                 return Object.values(item).some(val =>
@@ -148,17 +134,10 @@ const db = {
         });
     },
 
-    // Count
     count(collection) {
         return this.getAll(collection).length;
     },
 
-    // Clear collection
-    clear(collection) {
-        localStorage.setItem(DB_KEYS[collection.toUpperCase()], JSON.stringify([]));
-    },
-
-    // Reset database to defaults
     reset() {
         for (const key of Object.values(DB_KEYS)) {
             localStorage.removeItem(key);
@@ -167,7 +146,7 @@ const db = {
     }
 };
 
-// Message/Chat system
+// Chat/Messaging system
 const chat = {
     send(fromId, toId, content, type = 'text') {
         const message = {
@@ -210,10 +189,31 @@ const chat = {
     }
 };
 
-// Initialize database on load
-document.addEventListener('DOMContentLoaded', initDatabase);
+// Analytics tracking
+const analytics = {
+    track(tenantId, action) {
+        const data = JSON.parse(localStorage.getItem(DB_KEYS.ANALYTICS) || '{}');
+        if (!data[tenantId]) {
+            data[tenantId] = { views: 0, queries: 0, sessions: 1, lastActive: new Date().toISOString() };
+        }
+        if (action === 'view') data[tenantId].views++;
+        if (action === 'query') data[tenantId].queries++;
+        data[tenantId].lastActive = new Date().toISOString();
+        localStorage.setItem(DB_KEYS.ANALYTICS, JSON.stringify(data));
+    },
 
-// Export for use in other files
+    get(tenantId) {
+        const data = JSON.parse(localStorage.getItem(DB_KEYS.ANALYTICS) || '{}');
+        return data[tenantId] || { views: 0, queries: 0, sessions: 1 };
+    }
+};
+
+// Initialize on load
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', initDatabase);
+}
+
+// Export for modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { db, chat, initDatabase, DB_KEYS };
+    module.exports = { db, chat, analytics, initDatabase, DB_KEYS };
 }

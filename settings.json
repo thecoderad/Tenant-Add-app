@@ -1,0 +1,136 @@
+{
+  "appName": "TenantHub",
+  "version": "2.0.0",
+  "description": "Advanced Multi-Tenant Management Platform with AI Integration",
+
+  "theme": {
+    "default": "dark",
+    "allowUserSwitching": true,
+    "primaryColor": "#00ff88",
+    "secondaryColor": "#00d4ff",
+    "backgroundColor": "#0a0e1a"
+  },
+
+  "authentication": {
+    "requireStrongPasswords": true,
+    "passwordMinLength": 8,
+    "sessionTimeoutMinutes": 30,
+    "allowRememberMe": true
+  },
+
+  "aiAssistant": {
+    "enabled": true,
+    "modelName": "nvidia/nemotron-3-super-120b",
+    "apiEndpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "responseTimeoutMs": 10000,
+    "enableVoiceCommands": true
+  },
+
+  "database": {
+    "storageType": "localStorage",
+    "autoBackup": true,
+    "backupIntervalMinutes": 60,
+    "maxRecordsPerCollection": 10000
+  },
+
+  "notifications": {
+    "enabled": true,
+    "desktopNotifications": true,
+    "emailNotifications": false,
+    "pushNotifications": false,
+    "notificationSound": "default"
+  },
+
+  "analytics": {
+    "trackUserInteractions": true,
+    "collectPerformanceMetrics": true,
+    "sendAnonymousUsageData": false,
+    "retentionDays": 90
+  },
+
+  "security": {
+    "enableTwoFactorAuth": false,
+    "requireCaptcha": false,
+    "rateLimiting": {
+      "enabled": true,
+      "requestsPerMinute": 60
+    },
+    "encryption": {
+      "enabled": false,
+      "algorithm": "AES-256"
+    }
+  },
+
+  "ui": {
+    "animations": {
+      "enabled": true,
+      "duration": "0.3s",
+      "type": "cubic-bezier(0.4, 0, 0.2, 1)"
+    },
+    "responsiveBreakpoints": {
+      "sm": "576px",
+      "md": "768px",
+      "lg": "992px",
+      "xl": "1200px"
+    },
+    "accessibility": {
+      "highContrastMode": true,
+      "screenReaderSupport": true,
+      "keyboardNavigation": true
+    }
+  },
+
+  "integrations": {
+    "googleAnalytics": {
+      "enabled": false,
+      "trackingId": ""
+    },
+    "slackNotifications": {
+      "enabled": false,
+      "webhookUrl": ""
+    },
+    "emailService": {
+      "enabled": false,
+      "provider": "smtp",
+      "host": "",
+      "port": 587
+    }
+  },
+
+  "features": {
+    "tenantManagement": {
+      "allowTenantCreation": true,
+      "requireApproval": false,
+      "maxTenantsPerAdmin": 100
+    },
+    "messaging": {
+      "enableChat": true,
+      "fileSharing": true,
+      "messageHistoryDays": 30
+    },
+    "analytics": {
+      "enableReporting": true,
+      "exportFormats": ["json", "csv", "pdf"],
+      "customDashboards": true
+    },
+    "aiFeatures": {
+      "naturalLanguageProcessing": true,
+      "automatedTasks": true,
+      "predictiveAnalytics": true
+    }
+  },
+
+  "development": {
+    "debugMode": false,
+    "logLevel": "info",
+    "enableHotReload": false,
+    "testEnvironment": false
+  },
+
+  "legal": {
+    "termsOfService": "/docs/terms",
+    "privacyPolicy": "/docs/privacy",
+    "gdprCompliant": true,
+    "dataExportEnabled": true
+  }
+}
