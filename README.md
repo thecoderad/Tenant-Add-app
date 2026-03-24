@@ -1,219 +1,294 @@
-# 🏢 TenantHub - Multi-Tenant Management Platform
+# TenantHub - Multi-Tenant Business Management Platform
 
-A futuristic, AI-powered multi-tenant management system built with vanilla JavaScript, HTML, and CSS. Features advanced dashboard capabilities, intelligent tenant management, and seamless user experiences.
-
-## ✨ Features
-
-### 🎨 Futuristic Design System
-- **Cyberpunk-inspired UI**: Neon gradients, glassmorphism effects, and glowing elements
-- **Dark/Light Themes**: Full theme switching with accessibility support
-- **Responsive Layouts**: Mobile-first design with perfect scaling
-- **Animations & Transitions**: Smooth, engaging interactions throughout
-
-### 🤖 AI-Powered Assistance
-- **Intelligent Chatbot**: Natural language processing for tenant management
-- **Automated Tasks**: Create, update, delete tenants via voice/text commands
-- **Smart Analytics**: AI-driven insights and recommendations
-- **Predictive Features**: Anticipates user needs and suggests actions
-
-### 🔧 Advanced Tenant Management
-- **Real-time Monitoring**: Live status tracking and alerts
-- **Bulk Operations**: Efficient management of multiple tenants
-- **Detailed Analytics**: Comprehensive usage and engagement metrics
-- **Secure Authentication**: Robust password policies and session management
-
-### 💬 Enhanced Communications
-- **Multi-channel Messaging**: Real-time chat, notifications, and alerts
-- **File Sharing**: Secure document exchange capabilities
-- **Threaded Conversations**: Organized communication history
-- **Reaction System**: Emoji reactions for messages
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- No server required (uses localStorage for persistence)
-
-### Installation
-1. Clone or download the project files
-2. Open `index.html` in your browser
-3. Start using TenantHub immediately!
-
-### Default Credentials
-**Admin Access:**
-- Email: `admin@tenanthub.com`
-- Password: `admin123`
-
-**Demo Tenants:**
-- Acme Corp: `admin@acme.com` / `acme123`
-- TechStart Inc: `admin@techstart.io` / `tech456`
-- Global Services: `admin@globalservices.net` / `global789`
-
-## 🏗️ Architecture
-
-### Core Components
-- **database.js**: LocalStorage-based data layer with CRUD operations
-- **global-styles.css**: Comprehensive design system and styling
-- **enhanced-features.js**: Advanced functionality and utilities
-- **index.html**: Login and authentication interface
-- **admin.html**: Administrator dashboard and controls
-- **tenant.html**: Tenant-specific dashboard and tools
-
-### Data Model
-```javascript
-// Tenant Structure
-{
-  id: 1,
-  name: "Company Name",
-  domain: "company.com",
-  email: "admin@company.com",
-  password: "secure_password",
-  status: "active|inactive|pending",
-  created: "YYYY-MM-DD",
-  notes: "Additional information"
-}
-
-// Message Structure
-{
-  id: 1,
-  fromId: 1,      // Sender ID
-  toId: 0,        // Receiver ID (0 = admin)
-  content: "Message text",
-  type: "text|file|reaction|thread-reply",
-  timestamp: "ISO date string",
-  read: true|false,
-  metadata: {}    // Additional data for rich messages
-}
-```
-
-## 🎯 User Roles
-
-### Administrator
-- **Tenant Management**: Create, edit, delete, and monitor all tenants
-- **Analytics Dashboard**: Comprehensive reporting and insights
-- **AI Control Panel**: Manage AI settings and configurations
-- **Communication Hub**: Centralized messaging with all tenants
-
-### Tenant User
-- **Personal Dashboard**: Customized analytics and metrics
-- **Profile Management**: Update company and contact information
-- **Support Portal**: Direct communication with administrators
-- **AI Assistant**: Personalized help and guidance
-
-## 🛠️ Advanced Features
-
-### Enhanced Database Operations
-- **Validation Engine**: Comprehensive input validation with custom rules
-- **Bulk Updates**: Efficient batch operations for multiple records
-- **Data Export/Import**: JSON-based data transfer capabilities
-- **Duplicate Prevention**: Automatic checks for unique constraints
-
-### Advanced Analytics
-- **Interaction Tracking**: Detailed user behavior logging
-- **Activity Reports**: Customizable time-based analytics
-- **Performance Metrics**: Load times and responsiveness monitoring
-- **Engagement Insights**: AI-powered trend analysis
-
-### Security Enhancements
-- **Password Strength**: Real-time security assessment
-- **Session Management**: Automatic expiration and validation
-- **Input Sanitization**: Protection against injection attacks
-- **Access Controls**: Role-based permissions system
-
-### UI/UX Improvements
-- **Animated Notifications**: Visual feedback for user actions
-- **Loading States**: Clear indicators for ongoing operations
-- **Form Validation**: Real-time error detection and highlighting
-- **Accessibility**: WCAG-compliant design and navigation
-
-## 🤖 AI Assistant Capabilities
-
-The AI assistant can understand and execute various commands:
-
-### Tenant Management
-- "Create a tenant named ABC Company with domain abc.com"
-- "Update TechStart Inc's email to new@email.com"
-- "Delete the tenant called Old Corp"
-- "Show me all active tenants"
-
-### Analytics & Reporting
-- "What's the usage for this month?"
-- "Show me the most active tenant"
-- "Generate a report for the last 30 days"
-- "Tell me about recent trends"
-
-### Support & Help
-- "How do I update my profile?"
-- "Explain the dashboard features"
-- "What are the security settings?"
-- "Help me with analytics"
-
-## 🎨 Customization
-
-### Theme Customization
-Modify the CSS variables in `global-styles.css` to change colors, spacing, and typography:
-
-```css
-:root {
-  --neon-green: #00ff88;    /* Primary accent color */
-  --neon-cyan: #00d4ff;     /* Secondary accent color */
-  --bg-primary: #0a0e1a;    /* Main background */
-  --text-primary: #ffffff;  /* Main text color */
-}
-```
-
-### Adding New Features
-1. Extend the database schema in `database.js`
-2. Add corresponding UI elements in HTML files
-3. Implement functionality in JavaScript
-4. Style with CSS classes following the design system
-
-## 🧪 Testing
-
-The platform includes built-in testing capabilities:
-- Form validation testing
-- Database operation verification
-- UI interaction testing
-- Cross-browser compatibility checks
-
-## 📱 Browser Support
-
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
-
-## 🔐 Security Considerations
-
-While designed for local storage, the platform includes:
-- Input validation and sanitization
-- Secure password handling
-- Session management
-- Access control mechanisms
-
-For production deployment, integrate with proper backend authentication and database systems.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support, please contact:
-- Documentation: Check the project wiki
-- Issues: Report bugs via GitHub Issues
-- Community: Join our developer community
+A complete Node.js-based multi-tenant management platform with WhatsApp-like chat, support email system, and business-type-specific features.
 
 ---
 
-Built with ❤️ for modern tenant management solutions.
+## ⚡ Quick Start
 
-**TenantHub v2.0** - Empowering multi-tenant ecosystems with AI and advanced analytics.
+### Step 1: Install Dependencies
+```bash
+npm install
+```
+
+### Step 2: Start the Server
+**Option A - Using the launcher (Windows):**
+```
+Double-click start.bat
+```
+
+**Option B - Using command line:**
+```bash
+node server.js
+```
+
+### Step 3: Open Browser
+Navigate to: **http://localhost:3000**
+
+> ⚠️ **IMPORTANT:** Keep the server running while using TenantHub. The tenant login pages require the server to be active.
+
+---
+
+## 🔐 Login Credentials
+
+### Admin Access
+| Field | Value |
+|-------|-------|
+| URL | http://localhost:3000 |
+| Email | admin@tenanthub.com |
+| Password | admin123 |
+
+### Demo Tenants
+| Business | Login URL | Email | Password |
+|----------|-----------|-------|----------|
+| Care Clinic | `/login/care-clinic` | admin@careclinic.com | clinic123 |
+| Little Stars Daycare | `/login/little-stars-daycare` | admin@littlestars.com | daycare123 |
+| Bella Salon | `/login/bella-salon` | admin@bellasalon.com | salon123 |
+| Acme Corporation | `/login/acme-corporation` | admin@acme.com | acme123 |
+
+---
+
+## 🏢 Business Types Supported
+
+When creating a new business, select from 13 types:
+
+1. **Office/Corporate** - Employees, Tasks, Meetings, Projects
+2. **Clinic/Healthcare** - Patients, Appointments, Prescriptions, Billing
+3. **Daycare/Childcare** - Children, Parents, Attendance, Activities
+4. **Restaurant/Food** - Orders, Reservations, Menu, Staff
+5. **Retail/Store** - Products, Customers, Sales, Inventory
+6. **Salon/Beauty** - Clients, Appointments, Services, Staff
+7. **Gym/Fitness** - Members, Classes, Trainers, Subscriptions
+8. **School/Education** - Students, Teachers, Classes, Grades
+9. **Spa/Wellness** - Clients, Appointments, Treatments, Packages
+10. **Auto Service** - Customers, Vehicles, Services, Appointments
+11. **Real Estate** - Properties, Clients, Listings, Contracts
+12. **Legal Services** - Clients, Cases, Documents, Appointments
+13. **Other** - Customers, Services, Appointments, Reports
+
+---
+
+## 📋 Features
+
+### Admin Dashboard
+- ✅ **Tenant Management** - Create, edit, delete businesses
+- ✅ **Business Type Selection** - Choose from 13 business types
+- ✅ **Personalized Login URLs** - Auto-generated for each tenant
+- ✅ **Chat Messages** - WhatsApp-like chat with all tenants
+- ✅ **Support Emails** - View and manage support requests
+- ✅ **Analytics** - Platform-wide statistics
+- ✅ **Settings** - Platform configuration
+
+### Tenant Dashboard
+- ✅ **Business Stats** - Customers, appointments, deals, tasks
+- ✅ **Admin Chat** - Real-time WhatsApp-style messaging
+- ✅ **Email Support** - Contact admin via email
+- ✅ **AI Assistant** - Built-in help bot
+- ✅ **Profile** - View business information
+
+---
+
+## 🔗 Personalized Login URLs
+
+Each tenant gets a clean, professional login URL:
+
+```
+http://localhost:3000/login/{business-slug}
+```
+
+Examples:
+- `http://localhost:3000/login/care-clinic`
+- `http://localhost:3000/login/little-stars-daycare`
+- `http://localhost:3000/login/bella-salon`
+
+**Features:**
+- Shows business name and logo
+- Displays business type badge
+- Shows relevant features for that business type
+- Password-only login (email pre-filled from URL)
+
+---
+
+## 💬 Chat System
+
+### Tenant Side
+- Real-time messaging with admin
+- Message bubbles (green for tenant)
+- Timestamps on all messages
+- Clear chat history option
+- Auto-refresh every 5 seconds
+
+### Admin Side
+- View all tenant messages
+- Messages grouped by tenant
+- Unread message count badge
+- Reply functionality
+- Persistent storage in database
+
+---
+
+## 📧 Support Email System
+
+### Tenant Side
+- Pre-filled support email: `support@tenanthub.com`
+- Subject and message fields
+- Opens default email client
+- Saves copy to database for tracking
+
+### Admin Side
+- View all support emails
+- See sender details (name, email)
+- Subject and full message content
+- Status tracking (pending/resolved)
+- Mark as resolved button
+- Pending count badge
+
+---
+
+## 📊 API Endpoints
+
+### Authentication
+```
+POST /api/login/admin       - Admin login
+POST /api/login/tenant      - Tenant login by email
+POST /api/login/tenant-slug - Tenant login by slug
+```
+
+### Tenant Management
+```
+GET    /api/tenants          - Get all tenants
+GET    /api/tenants/:id      - Get single tenant
+POST   /api/tenants          - Create tenant
+PUT    /api/tenants/:id      - Update tenant
+DELETE /api/tenants/:id      - Delete tenant
+GET    /api/tenant/slug/:slug - Get tenant by slug
+```
+
+### Chat System
+```
+GET  /api/chat           - Get all messages (admin)
+GET  /api/chat/:tenantId - Get messages for tenant
+POST /api/chat           - Send message
+```
+
+### Support Emails
+```
+GET    /api/support-email      - Get all support emails
+POST   /api/support-email      - Send support email
+PUT    /api/support-email/:id  - Update email status
+```
+
+### Entity Management
+```
+GET    /api/entities/:tenantId/:type - Get entities
+POST   /api/entities/:tenantId/:type - Create entity
+PUT    /api/entities/:tenantId/:type/:id - Update entity
+DELETE /api/entities/:tenantId/:type/:id - Delete entity
+```
+
+---
+
+## 🗄️ Database Structure
+
+Data is stored in `database.json`:
+
+```json
+{
+  "tenants": [...],
+  "users": {...},
+  "chatMessages": [...],
+  "supportEmails": [...],
+  "entities": {...},
+  "analytics": {...}
+}
+```
+
+---
+
+## 🛠️ Troubleshooting
+
+### "Tenant Not Found" Error
+**Cause:** Server is not running
+
+**Solution:**
+1. Open `start.bat` or run `node server.js`
+2. Wait for "Server running at http://localhost:3000" message
+3. Refresh the tenant login page
+
+### Can't Login as Admin
+**Cause:** Wrong credentials or server not running
+
+**Solution:**
+1. Verify server is running (check console)
+2. Use exact credentials: `admin@tenanthub.com` / `admin123`
+3. Clear browser cache
+
+### CSS Not Loading
+**Cause:** Server not serving static files
+
+**Solution:**
+1. Ensure server is running on port 3000
+2. Use absolute paths in HTML (already fixed)
+3. Clear browser cache (Ctrl+Shift+R)
+
+### Port 3000 Already in Use
+**Solution:**
+```bash
+# Find and kill process on port 3000 (Windows)
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
+```
+
+---
+
+## 📁 File Structure
+
+```
+Tenant-Add-app/
+├── server.js              # Node.js backend
+├── package.json           # Dependencies
+├── database.json          # Auto-generated data
+├── start.bat              # Windows launcher
+├── index.html             # Main login page
+├── admin.html             # Admin dashboard
+├── tenant.html            # Tenant dashboard
+├── tenant-login.html      # Personalized tenant login
+├── global-styles.css      # Shared styles
+└── login-styles.css       # Login page styles
+```
+
+---
+
+## 🚀 Usage Flow
+
+1. **Admin creates business:**
+   - Login to admin dashboard
+   - Click "Create Business"
+   - Select business type
+   - Fill in details
+   - Copy generated login URL
+
+2. **Tenant receives credentials:**
+   - Login URL (e.g., `/login/care-clinic`)
+   - Password (set by admin)
+
+3. **Tenant logs in:**
+   - Visit personalized URL
+   - See business name and features
+   - Enter password
+   - Access tenant dashboard
+
+4. **Communication:**
+   - Tenant uses Admin Chat for instant messages
+   - Tenant uses Email Support for detailed requests
+   - Admin responds from dashboard
+
+---
+
+## 📝 License
+
+MIT License - Free for personal and commercial use.
+
+---
+
+**Built with Node.js, Express, and modern vanilla JavaScript**

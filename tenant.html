@@ -4,687 +4,381 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tenant Dashboard - TenantHub</title>
-    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="/global-styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Tenant Dashboard Specific Styles */
-        .tenant-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .tenant-sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            padding: var(--spacing-lg);
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .tenant-main {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: var(--spacing-xl);
-        }
-
-        .tenant-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: var(--spacing-lg);
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            cursor: pointer;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--gradient-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .sidebar-nav {
-            list-style: none;
-        }
-
-        .nav-item {
-            padding: var(--spacing-md) var(--spacing-lg);
-            margin-bottom: var(--spacing-sm);
-            border-radius: var(--border-radius-md);
-            cursor: pointer;
-            transition: var(--transition-base);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-        }
-
-        .nav-item:hover {
-            background: var(--bg-tertiary);
-        }
-
-        .nav-item.active {
-            background: var(--bg-tertiary);
-            border-left: 3px solid var(--neon-green);
-        }
-
-        .dashboard-overview {
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .welcome-banner {
-            text-align: center;
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .welcome-title {
-            font-size: 2rem;
-            margin-bottom: var(--spacing-sm);
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .welcome-subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-        }
-
-        .overview-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .overview-stat {
-            text-align: center;
-            padding: var(--spacing-lg);
-            background: var(--bg-tertiary);
-            border-radius: var(--border-radius-md);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--neon-green);
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .analytics-section {
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .analytics-charts {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .chart-container {
-            background: var(--bg-tertiary);
-            padding: var(--spacing-lg);
-            border-radius: var(--border-radius-md);
-            text-align: center;
-        }
-
-        .chart-placeholder {
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-secondary);
-            border-radius: var(--border-radius-md);
-            color: var(--text-muted);
-        }
-
-        .ai-assistant-section {
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-        }
-
-        .ai-chat-container {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: var(--spacing-lg);
-            padding: var(--spacing-md);
-            background: var(--bg-tertiary);
-            border-radius: var(--border-radius-md);
-        }
-
-        .ai-message {
-            margin-bottom: var(--spacing-sm);
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-radius: var(--border-radius-md);
-            max-width: 80%;
-        }
-
-        .ai-user-message {
-            background: var(--neon-green);
-            color: var(--bg-primary);
-            margin-left: auto;
-        }
-
-        .ai-bot-message {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-        }
-
-        .ai-input-container {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-
-        .ai-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: var(--border-radius-md);
-            background: var(--bg-input);
-            color: var(--text-primary);
-        }
-
-        .ai-send-btn {
-            padding: 12px 20px;
-            background: var(--gradient-primary);
-            border: none;
-            border-radius: var(--border-radius-md);
-            color: var(--bg-primary);
-            cursor: pointer;
-        }
-
-        .profile-section {
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            margin-top: var(--spacing-xl);
-        }
-
-        .support-section {
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-xl);
-            margin-top: var(--spacing-xl);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--neon-red);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .cyber-border {
-            position: relative;
-        }
-
-        .cyber-border::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: var(--gradient-primary);
-            border-radius: calc(var(--border-radius-lg) + 2px);
-            z-index: -1;
-            animation: borderAnimation 3s linear infinite;
-        }
-
-        @keyframes borderAnimation {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
-
-        .pulse-animation {
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .tenant-layout { display: flex; min-height: 100vh; }
+        .tenant-sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); padding: var(--spacing-lg); position: fixed; height: 100vh; overflow-y: auto; }
+        .tenant-main { flex: 1; margin-left: var(--sidebar-width); padding: var(--spacing-xl); }
+        .tenant-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color); margin-bottom: var(--spacing-xl); flex-wrap: wrap; gap: var(--spacing-md); }
+        .user-profile { display: flex; align-items: center; gap: var(--spacing-md); cursor: pointer; padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--border-radius-md); }
+        .user-profile:hover { background: var(--bg-tertiary); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .sidebar-nav { list-style: none; margin-top: var(--spacing-xl); }
+        .nav-item { padding: var(--spacing-md) var(--spacing-lg); margin-bottom: var(--spacing-sm); border-radius: var(--border-radius-md); cursor: pointer; display: flex; align-items: center; gap: var(--spacing-sm); color: var(--text-secondary); }
+        .nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-tertiary); color: var(--neon-green); border-left: 3px solid var(--neon-green); }
+        .dashboard-overview { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .welcome-banner { text-align: center; margin-bottom: var(--spacing-xl); }
+        .welcome-title { font-size: 2rem; margin-bottom: var(--spacing-sm); background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .overview-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl); }
+        .overview-stat { text-align: center; padding: var(--spacing-lg); background: var(--bg-tertiary); border-radius: var(--border-radius-md); }
+        .stat-number { font-size: 2rem; font-weight: 700; color: var(--neon-green); margin-bottom: var(--spacing-sm); }
+        .stat-label { color: var(--text-secondary); font-size: 0.9rem; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .ai-assistant-section { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .ai-chat-container { max-height: 300px; overflow-y: auto; margin-bottom: var(--spacing-lg); padding: var(--spacing-md); background: var(--bg-tertiary); border-radius: var(--border-radius-md); }
+        .ai-message { margin-bottom: 8px; padding: 8px 12px; border-radius: 8px; max-width: 80%; }
+        .ai-user-message { background: var(--neon-green); color: var(--bg-primary); margin-left: auto; }
+        .ai-bot-message { background: var(--bg-input); border: 1px solid var(--border-color); }
+        .ai-input-container { display: flex; gap: var(--spacing-sm); }
+        .ai-input { flex: 1; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); }
+        .ai-send-btn { padding: 12px 20px; background: var(--gradient-primary); border: none; border-radius: 8px; color: var(--bg-primary); cursor: pointer; }
+        .profile-section, .support-section { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+        .chat-section { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; height: calc(100vh - 200px); display: flex; flex-direction: column; }
+        .chat-header-chat { display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-lg); background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); }
+        .chat-body { flex: 1; overflow-y: auto; padding: var(--spacing-lg); background: var(--bg-primary); }
+        .chat-message-bubble { margin-bottom: var(--spacing-md); display: flex; flex-direction: column; max-width: 70%; }
+        .chat-message-bubble.admin { align-self: flex-start; }
+        .chat-message-bubble.tenant { align-self: flex-end; margin-left: auto; }
+        .chat-bubble { padding: 12px 16px; border-radius: 12px; }
+        .chat-bubble.admin { background: var(--bg-tertiary); color: var(--text-primary); border-bottom-left-radius: 4px; }
+        .chat-bubble.tenant { background: var(--gradient-primary); color: var(--bg-primary); border-bottom-right-radius: 4px; }
+        .chat-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+        .chat-footer { display: flex; gap: var(--spacing-sm); padding: var(--spacing-lg); background: var(--bg-secondary); border-top: 1px solid var(--border-color); }
+        .chat-input-chat { flex: 1; padding: 14px 20px; border: 2px solid var(--border-color); border-radius: 24px; background: var(--bg-input); color: var(--text-primary); }
+        .chat-send-btn { width: 50px; height: 50px; border-radius: 50%; background: var(--gradient-primary); border: none; color: var(--bg-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .empty-chat { text-align: center; padding: var(--spacing-3xl); color: var(--text-muted); }
+        .empty-chat i { font-size: 5rem; opacity: 0.3; margin-bottom: var(--spacing-lg); }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+        .toast { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow-xl); transform: translateX(120%); transition: transform 0.3s; margin-bottom: 10px; }
+        .toast.show { transform: translateX(0); }
+        .toast-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .toast-success .toast-icon { background: rgba(0,255,136,0.2); color: var(--neon-green); }
+        .toast-error .toast-icon { background: rgba(255,56,96,0.2); color: var(--neon-red); }
+        .toast-info .toast-icon { background: rgba(0,212,255,0.2); color: var(--neon-cyan); }
+        @media (max-width: 768px) {
+            .tenant-sidebar { transform: translateX(-100%); }
+            .tenant-sidebar.open { transform: translateX(0); }
+            .tenant-main { margin-left: 0; padding: var(--spacing-lg); }
+            .overview-stats { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" style="display:none;position:fixed;top:20px;left:20px;z-index:1001;background:var(--gradient-primary);border:none;border-radius:50%;width:50px;height:50px;color:white;font-size:1.25rem;cursor:pointer;box-shadow:var(--glow-green);"><i class="fas fa-bars"></i></button>
+    <div class="overlay" id="sidebar-overlay" onclick="toggleSidebar()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;"></div>
+
     <div class="tenant-layout">
-        <!-- Sidebar -->
-        <aside class="tenant-sidebar">
+        <aside class="tenant-sidebar" id="tenant-sidebar">
             <div style="text-align: center; margin-bottom: var(--spacing-xl);">
-                <div class="brand-logo" style="font-size: 3rem; margin-bottom: var(--spacing-sm);">
-                    <i class="fas fa-building"></i>
-                </div>
+                <div style="font-size: 3rem; margin-bottom: var(--spacing-sm); color: var(--neon-cyan);"><i class="fas fa-building"></i></div>
                 <h3 style="color: var(--neon-cyan); margin: 0;" id="tenant-name-display">Your Company</h3>
             </div>
-
             <ul class="sidebar-nav">
-                <li class="nav-item active">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('analytics')">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Analytics</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('settings')">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('support')">
-                    <i class="fas fa-headset"></i>
-                    <span>Support</span>
-                    <span class="badge badge-pending" style="margin-left: auto;">2</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('profile')">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('ai-assistant')">
-                    <i class="fas fa-robot"></i>
-                    <span>AI Assistant</span>
-                </li>
+                <li class="nav-item active" onclick="showSection('dashboard', this)"><i class="fas fa-home"></i><span>Dashboard</span></li>
+                <li class="nav-item" onclick="showSection('chat', this)"><i class="fas fa-comments"></i><span>Admin Chat</span></li>
+                <li class="nav-item" onclick="showSection('support', this)"><i class="fas fa-envelope"></i><span>Email Support</span></li>
+                <li class="nav-item" onclick="showSection('profile', this)"><i class="fas fa-user"></i><span>Profile</span></li>
             </ul>
-
             <div style="margin-top: auto; padding-top: var(--spacing-xl);">
-                <button class="btn btn-outline" onclick="logout()" style="width: 100%;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+                <button class="btn btn-outline btn-full" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="tenant-main">
-            <!-- Header -->
             <header class="tenant-header">
-                <h1>Tenant Dashboard</h1>
-                <div class="user-profile" onclick="showProfileMenu()">
+                <div>
+                    <h1 id="page-title">Tenant Dashboard</h1>
+                    <p style="color: var(--text-secondary); margin: 0;">Manage your business</p>
+                </div>
+                <div class="user-profile">
                     <div class="avatar" id="user-avatar">T</div>
                     <span id="user-name">Tenant User</span>
-                    <span style="margin-left: var(--spacing-sm);">
-                        <i class="fas fa-chevron-down"></i>
-                    </span>
                 </div>
             </header>
 
-            <!-- Overview Section -->
-            <section class="dashboard-overview cyber-border">
-                <div class="welcome-banner">
-                    <h2 class="welcome-title">Welcome to TenantHub</h2>
-                    <p class="welcome-subtitle">Manage your tenant space, analytics, and communications</p>
+            <!-- Dashboard -->
+            <section id="dashboard-section" class="section active">
+                <div class="dashboard-overview">
+                    <div class="welcome-banner">
+                        <h2 class="welcome-title">Welcome to TenantHub</h2>
+                        <p class="welcome-subtitle" id="company-description">Manage your business</p>
+                    </div>
+                    <div class="overview-stats">
+                        <div class="overview-stat"><div class="stat-number" id="stat-customers">0</div><div class="stat-label">Customers</div></div>
+                        <div class="overview-stat"><div class="stat-number" id="stat-appointments">0</div><div class="stat-label">Appointments</div></div>
+                        <div class="overview-stat"><div class="stat-number" id="stat-deals">0</div><div class="stat-label">Active Deals</div></div>
+                        <div class="overview-stat"><div class="stat-number" id="stat-tasks">0</div><div class="stat-label">Tasks</div></div>
+                    </div>
                 </div>
-
-                <div class="overview-stats">
-                    <div class="overview-stat">
-                        <div class="stat-number" id="page-views">0</div>
-                        <div class="stat-label">Page Views</div>
-                    </div>
-                    <div class="overview-stat">
-                        <div class="stat-number" id="ai-queries">0</div>
-                        <div class="stat-label">AI Queries</div>
-                    </div>
-                    <div class="overview-stat">
-                        <div class="stat-number" id="sessions">0</div>
-                        <div class="stat-label">Sessions</div>
-                    </div>
-                    <div class="overview-stat">
-                        <div class="stat-number" id="messages">0</div>
-                        <div class="stat-label">Messages</div>
+                <div class="ai-assistant-section">
+                    <h3><i class="fas fa-robot"></i> AI Assistant</h3>
+                    <p>Get instant help with your business</p>
+                    <div class="ai-chat-container" id="ai-chat-container"><div class="ai-message ai-bot-message">Hello! I'm your AI assistant. How can I help?</div></div>
+                    <div class="ai-input-container">
+                        <input type="text" class="ai-input" id="ai-input" placeholder="Ask me anything..." onkeypress="if(event.key==='Enter')sendAI()">
+                        <button class="ai-send-btn" onclick="sendAI()"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </div>
             </section>
 
-            <!-- Analytics Section -->
-            <section class="analytics-section">
-                <h3><i class="fas fa-chart-line"></i> Analytics Overview</h3>
-
-                <div class="analytics-charts">
-                    <div class="chart-container">
-                        <h4>Monthly Activity</h4>
-                        <div class="chart-placeholder">
-                            <i class="fas fa-chart-bar" style="font-size: 3rem; opacity: 0.5;"></i>
+            <!-- Chat -->
+            <section id="chat-section" class="section">
+                <div class="chat-section">
+                    <div class="chat-header-chat">
+                        <div style="display:flex;align-items:center;gap:var(--spacing-md);">
+                            <div class="avatar" style="background:var(--gradient-secondary);">A</div>
+                            <div><div style="font-weight:600;">Admin Support</div><div style="font-size:0.85rem;color:var(--neon-green);">● Online</div></div>
                         </div>
+                        <button class="btn btn-sm btn-outline" onclick="clearChat()"><i class="fas fa-trash"></i> Clear</button>
                     </div>
-                    <div class="chart-container">
-                        <h4>AI Engagement</h4>
-                        <div class="chart-placeholder">
-                            <i class="fas fa-robot" style="font-size: 3rem; opacity: 0.5;"></i>
-                        </div>
+                    <div class="chat-body" id="chat-body">
+                        <div class="empty-chat" id="empty-chat"><i class="fas fa-comments"></i><h3>No messages yet</h3><p>Start a conversation with admin</p></div>
+                        <div id="chat-messages"></div>
                     </div>
-                    <div class="chart-container">
-                        <h4>User Sessions</h4>
-                        <div class="chart-placeholder">
-                            <i class="fas fa-users" style="font-size: 3rem; opacity: 0.5;"></i>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <h4>System Health</h4>
-                        <div class="chart-placeholder">
-                            <i class="fas fa-heartbeat" style="font-size: 3rem; opacity: 0.5;"></i>
-                        </div>
+                    <div class="chat-footer">
+                        <input type="text" class="chat-input-chat" id="chat-input" placeholder="Type your message..." onkeypress="if(event.key==='Enter')sendMessage()">
+                        <button class="chat-send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </div>
             </section>
 
-            <!-- AI Assistant Section -->
-            <section class="ai-assistant-section">
-                <h3><i class="fas fa-robot"></i> AI Assistant</h3>
-                <p>Get instant help with your tenant management tasks</p>
-
-                <div class="ai-chat-container" id="ai-chat-container">
-                    <div class="ai-message ai-bot-message">
-                        Hello! I'm your TenantHub AI assistant. How can I help you manage your tenant space today?
+            <!-- Support -->
+            <section id="support-section" class="section">
+                <div class="support-section">
+                    <h3><i class="fas fa-envelope"></i> Email Support</h3>
+                    <p style="color:var(--text-secondary);margin-bottom:var(--spacing-lg);">Send an email to support@tenanthub.com</p>
+                    <div class="form-group">
+                        <label class="form-label">Your Email</label>
+                        <input type="email" class="form-input" id="support-email-from" readonly>
                     </div>
-                </div>
-
-                <div class="ai-input-container">
-                    <input type="text" class="ai-input" id="ai-input" placeholder="Ask me about your dashboard, analytics, or tenant settings...">
-                    <button class="ai-send-btn" onclick="sendAIRequest()">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                    <div class="form-group">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-input" id="support-subject" placeholder="Brief description">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-textarea" id="support-message" placeholder="Describe your issue..." style="min-height:150px;"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="sendSupportEmail()"><i class="fas fa-paper-plane"></i> Send Email</button>
                 </div>
             </section>
 
-            <!-- Profile Section -->
-            <section class="profile-section">
-                <h3><i class="fas fa-user"></i> Profile Settings</h3>
-
-                <div class="form-group">
-                    <label class="form-label">Company Name</label>
-                    <input type="text" class="form-input" id="company-name" placeholder="Your company name">
+            <!-- Profile -->
+            <section id="profile-section" class="section">
+                <div class="profile-section">
+                    <h3><i class="fas fa-user"></i> Profile Settings</h3>
+                    <div class="form-group"><label class="form-label">Company Name</label><input type="text" class="form-input" id="company-name" readonly></div>
+                    <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="contact-email" readonly></div>
+                    <div class="form-group"><label class="form-label">Domain</label><input type="text" class="form-input" id="company-domain" readonly></div>
+                    <div class="form-group"><label class="form-label">Business Type</label><input type="text" class="form-input" id="business-type" readonly></div>
+                    <p style="color:var(--text-muted);font-size:0.9rem;">Contact admin to update profile.</p>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Contact Email</label>
-                    <input type="email" class="form-input" id="contact-email" placeholder="admin@yourcompany.com">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Current Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" class="form-input" id="current-password" placeholder="••••••••">
-                        <button type="button" class="password-toggle" onclick="togglePassword(this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">New Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" class="form-input" id="new-password" placeholder="••••••••">
-                        <button type="button" class="password-toggle" onclick="togglePassword(this)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button class="btn btn-primary" onclick="updateProfile()">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
-            </section>
-
-            <!-- Support Section -->
-            <section class="support-section">
-                <h3><i class="fas fa-headset"></i> Support & Help</h3>
-
-                <div class="form-group">
-                    <label class="form-label">Need Help?</label>
-                    <textarea class="form-textarea" id="support-message" placeholder="Describe your issue or question..."></textarea>
-                </div>
-
-                <button class="btn btn-secondary" onclick="sendSupportRequest()">
-                    <i class="fas fa-paper-plane"></i> Send Support Request
-                </button>
             </section>
         </main>
     </div>
 
-    <script src="database.js"></script>
+    <div id="toast-container" class="toast-container"></div>
+
     <script>
-        // Initialize tenant dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTenantData();
-            updateAnalytics();
+        const API = '/api';
+        let tenantData = null;
+        let chatMessages = [];
 
-            // Set up event listeners
-            document.getElementById('ai-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendAIRequest();
+        console.log('=== tenant.html loaded ===');
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const icons = { success: '✓', error: '✕', info: 'ℹ' };
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><div class="toast-content">${msg}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.add('hiding'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function showSection(section, navItem) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(section + '-section').classList.add('active');
+            if (navItem) navItem.classList.add('active');
+            const titles = { dashboard: 'Tenant Dashboard', chat: 'Admin Chat', support: 'Email Support', profile: 'Profile Settings' };
+            document.getElementById('page-title').textContent = titles[section];
+            if (section === 'chat') { loadChatMessages(); setTimeout(() => document.getElementById('chat-input').focus(), 100); }
+        }
+
+        function loadTenant() {
+            console.log('=== loadTenant() ===');
+            const stored = sessionStorage.getItem('current_tenant');
+            const user = sessionStorage.getItem('tenanthub_user');
+            console.log('stored:', stored);
+            console.log('user:', user);
+
+            if (!stored && !user) {
+                console.log('No session, redirecting');
+                showToast('Please login', 'error');
+                setTimeout(() => window.location.href = '/index.html', 2000);
+                return;
+            }
+
+            if (stored) {
+                try {
+                    tenantData = JSON.parse(stored);
+                    console.log('Parsed tenantData:', tenantData);
+                    loadUI();
+                } catch (e) {
+                    console.error('Parse error:', e);
+                    if (user) fetchFromAPI();
+                    else redirectToLogin();
                 }
-            });
-        });
-
-        // Load tenant-specific data
-        function loadTenantData() {
-            // Get current tenant info from localStorage or URL params
-            const tenantId = localStorage.getItem('current_tenant_id') || 1; // Default to first tenant
-
-            // For demo purposes, we'll use a default tenant
-            const tenant = db.get('tenants', tenantId) || db.getAll('tenants')[0];
-
-            if (tenant) {
-                document.getElementById('tenant-name-display').textContent = tenant.name;
-                document.getElementById('user-name').textContent = tenant.name.split(' ')[0];
-                document.getElementById('user-avatar').textContent = tenant.name.charAt(0).toUpperCase();
-                document.getElementById('company-name').value = tenant.name;
-                document.getElementById('contact-email').value = tenant.email;
+            } else if (user) {
+                fetchFromAPI();
             }
         }
 
-        // Update analytics data
-        function updateAnalytics() {
-            // Simulate getting analytics data for current tenant
-            const tenantId = localStorage.getItem('current_tenant_id') || 1;
-            const analyticsData = analytics.get(tenantId);
-
-            document.getElementById('page-views').textContent = analyticsData.views || 0;
-            document.getElementById('ai-queries').textContent = analyticsData.queries || 0;
-            document.getElementById('sessions').textContent = analyticsData.sessions || 0;
-
-            // Count unread messages for this tenant
-            const messages = chat.getInbox(tenantId);
-            document.getElementById('messages').textContent = messages.filter(m => !m.read).length;
+        function fetchFromAPI() {
+            try {
+                const userData = JSON.parse(sessionStorage.getItem('tenanthub_user'));
+                if (userData && userData.email) {
+                    console.log('Fetching from API:', userData.email);
+                    fetch(`${API}/tenant/lookup?email=${encodeURIComponent(userData.email)}`)
+                        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+                        .then(data => {
+                            console.log('Fetched:', data);
+                            tenantData = data;
+                            sessionStorage.setItem('current_tenant', JSON.stringify(data));
+                            loadUI();
+                        })
+                        .catch(() => redirectToLogin());
+                } else { redirectToLogin(); }
+            } catch (e) { redirectToLogin(); }
         }
 
-        // Navigation
-        function navigateTo(section) {
-            alert(`Navigating to ${section} section`);
+        function redirectToLogin() {
+            console.log('Redirecting to login');
+            showToast('Please login again', 'error');
+            setTimeout(() => window.location.href = '/index.html', 2000);
         }
 
-        // AI Assistant functionality
-        function sendAIRequest() {
+        function loadUI() {
+            console.log('loadUI()');
+            document.getElementById('tenant-name-display').textContent = tenantData.name;
+            document.getElementById('user-name').textContent = tenantData.name.split(' ')[0];
+            document.getElementById('user-avatar').textContent = tenantData.name.charAt(0).toUpperCase();
+            document.getElementById('company-name').value = tenantData.name;
+            document.getElementById('contact-email').value = tenantData.email;
+            document.getElementById('company-domain').value = tenantData.domain || '';
+            document.getElementById('business-type').value = tenantData.businessType || 'Business';
+            document.getElementById('company-description').textContent = tenantData.description || 'Manage your business';
+            document.getElementById('support-email-from').value = tenantData.email;
+            loadStats();
+            loadChatMessages();
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch(`${API}/tenant/${tenantData.id}/stats`);
+                const stats = await res.json();
+                document.getElementById('stat-customers').textContent = stats.customers || 0;
+                document.getElementById('stat-appointments').textContent = stats.appointments || 0;
+                document.getElementById('stat-deals').textContent = stats.activeDeals || 0;
+                document.getElementById('stat-tasks').textContent = stats.tasks || 0;
+            } catch (e) { console.error('Stats error:', e); }
+        }
+
+        function sendAI() {
             const input = document.getElementById('ai-input');
-            const message = input.value.trim();
-            if (!message) return;
-
-            // Add user message
-            addAIMessage(message, 'user');
+            const msg = input.value.trim();
+            if (!msg) return;
+            const container = document.getElementById('ai-chat-container');
+            container.innerHTML += `<div class="ai-message ai-user-message">${msg}</div>`;
             input.value = '';
-
-            // Track AI query
-            const tenantId = localStorage.getItem('current_tenant_id') || 1;
-            analytics.track(tenantId, 'query');
-
-            // Simulate AI response
             setTimeout(() => {
-                const response = generateAIResponse(message);
-                addAIMessage(response, 'bot');
-                updateAnalytics(); // Update the analytics after AI interaction
+                container.innerHTML += `<div class="ai-message ai-bot-message">${getAIResponse(msg)}</div>`;
+                container.scrollTop = container.scrollHeight;
             }, 1000);
         }
 
-        function addAIMessage(text, sender) {
-            const messagesContainer = document.getElementById('ai-chat-container');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `ai-message ai-${sender === 'user' ? 'user' : 'bot'}-message`;
-            messageDiv.textContent = text;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        function getAIResponse(input) {
+            const lower = input.toLowerCase();
+            if (lower.includes('hello') || lower.includes('hi')) return "Hello! How can I help?";
+            if (lower.includes('support') || lower.includes('help')) return "Use Admin Chat or Email Support for assistance.";
+            if (lower.includes('profile')) return "View your profile in the Profile section.";
+            if (lower.includes('logout')) return "Click Logout in the sidebar.";
+            return "I can help with customers, appointments, and support. What do you need?";
         }
 
-        function generateAIResponse(userInput) {
-            const lowerInput = userInput.toLowerCase();
+        function loadChatMessages() {
+            const stored = localStorage.getItem(`chat_${tenantData.id}`);
+            if (stored) { chatMessages = JSON.parse(stored); renderChat(); }
+        }
 
-            if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
-                return "Hello! I'm your TenantHub AI assistant. How can I help you manage your tenant space today?";
-            } else if (lowerInput.includes('analytics') || lowerInput.includes('stats') || lowerInput.includes('metrics')) {
-                return "Your analytics show 120 page views this month, with 25 AI queries and 8 active sessions. Your engagement rate is currently 78%.";
-            } else if (lowerInput.includes('profile') || lowerInput.includes('settings')) {
-                return "You can update your profile information in the Profile Settings section. Remember to save your changes after making updates.";
-            } else if (lowerInput.includes('support') || lowerInput.includes('help')) {
-                return "For immediate support, use the Support & Help section. For quick questions, I can help with common tasks like updating settings or checking analytics.";
-            } else if (lowerInput.includes('dashboard') || lowerInput.includes('overview')) {
-                return "Your dashboard shows key metrics like page views, AI queries, and session data. The charts provide visual representations of your tenant's activity.";
-            } else if (lowerInput.includes('password') || lowerInput.includes('change')) {
-                return "To change your password, go to Profile Settings, enter your current password, then your new password twice for confirmation.";
-            } else if (lowerInput.includes('tenant') || lowerInput.includes('account')) {
-                return "Your tenant account includes access to analytics, profile management, and support features. You can customize your dashboard settings as needed.";
-            } else if (lowerInput.includes('logout') || lowerInput.includes('sign out')) {
-                return "To logout, click on your profile icon in the top-right corner and select 'Logout'. Your session will be securely ended.";
-            } else {
-                return "I'm your TenantHub AI assistant. I can help with profile management, analytics, dashboard settings, and support requests. What would you like to know?";
+        function renderChat() {
+            const container = document.getElementById('chat-messages');
+            const empty = document.getElementById('empty-chat');
+            if (chatMessages.length === 0) { empty.style.display = 'block'; container.innerHTML = ''; return; }
+            empty.style.display = 'none';
+            container.innerHTML = chatMessages.map(m => `<div class="chat-message-bubble ${m.sender}"><div class="chat-bubble ${m.sender}">${escapeHtml(m.text)}</div><div class="chat-time">${new Date(m.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
+            document.getElementById('chat-body').scrollTop = document.getElementById('chat-body').scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            const newMsg = { id: Date.now(), tenantId: tenantData.id, tenantName: tenantData.name, sender: 'tenant', text: msg, timestamp: new Date().toISOString(), read: false };
+            try {
+                await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newMsg) });
+                chatMessages.push(newMsg);
+                localStorage.setItem(`chat_${tenantData.id}`, JSON.stringify(chatMessages));
+                renderChat();
+                input.value = '';
+                showToast('Message sent', 'success');
+            } catch (e) { console.error(e); }
+        }
+
+        function clearChat() {
+            if (confirm('Clear chat history?')) {
+                chatMessages = [];
+                localStorage.removeItem(`chat_${tenantData.id}`);
+                renderChat();
             }
         }
 
-        // Profile management
-        function updateProfile() {
-            const companyName = document.getElementById('company-name').value;
-            const contactEmail = document.getElementById('contact-email').value;
-            const newPassword = document.getElementById('new-password').value;
-
-            if (!companyName || !contactEmail) {
-                showNotification('Please fill in all required fields.', 'error');
-                return;
-            }
-
-            // Update tenant info in database
-            const tenantId = localStorage.getItem('current_tenant_id') || 1;
-            const updates = { name: companyName, email: contactEmail };
-
-            if (newPassword) {
-                updates.password = newPassword;
-            }
-
-            db.update('tenants', tenantId, updates);
-
-            // Update users list
-            const users = JSON.parse(localStorage.getItem('tenanthub_users'));
-            const tenantIndex = users.tenants.findIndex(t => t.id == tenantId);
-            if (tenantIndex !== -1) {
-                users.tenants[tenantIndex].name = companyName;
-                users.tenants[tenantIndex].email = contactEmail;
-                if (newPassword) {
-                    users.tenants[tenantIndex].password = newPassword;
-                }
-                localStorage.setItem('tenanthub_users', JSON.stringify(users));
-            }
-
-            showNotification('Profile updated successfully!', 'success');
-        }
-
-        // Support functionality
-        function sendSupportRequest() {
+        function sendSupportEmail() {
+            const subject = document.getElementById('support-subject').value;
             const message = document.getElementById('support-message').value;
-
-            if (!message) {
-                showNotification('Please enter your support request.', 'error');
-                return;
-            }
-
-            // Send message to admin (tenant ID 0)
-            const tenantId = localStorage.getItem('current_tenant_id') || 1;
-            chat.send(tenantId, 0, message, 'support');
-
-            document.getElementById('support-message').value = '';
-            showNotification('Support request sent successfully! We\'ll respond shortly.', 'success');
+            if (!subject || !message) { showToast('Fill in all fields', 'error'); return; }
+            fetch(`${API}/support-email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: Date.now(), tenantId: tenantData.id, tenantName: tenantData.name, tenantEmail: tenantData.email, subject, message }) })
+                .then(() => {
+                    document.getElementById('support-subject').value = '';
+                    document.getElementById('support-message').value = '';
+                    showToast('Email sent!', 'success');
+                });
         }
 
-        // Utility functions
-        function togglePassword(button) {
-            const input = button.previousElementSibling;
-            const icon = button.querySelector('i');
+        function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fas fa-eye-slash';
-            } else {
-                input.type = 'password';
-                icon.className = 'fas fa-eye';
-            }
-        }
-
-        function showProfileMenu() {
-            // Show profile menu dropdown
-            alert('Profile menu would open here with options like Settings, Logout, etc.');
+        function toggleSidebar() {
+            document.getElementById('tenant-sidebar').classList.toggle('open');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
         }
 
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                localStorage.removeItem('current_tenant_id');
-                window.location.href = 'index.html';
-            }
+            sessionStorage.removeItem('tenanthub_user');
+            sessionStorage.removeItem('current_tenant');
+            showToast('Logging out...', 'info');
+            setTimeout(() => window.location.href = '/index.html', 1000);
         }
 
-        function showNotification(message, type) {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `login-${type}`;
-            notification.style.position = 'fixed';
-            notification.style.top = '20px';
-            notification.style.right = '20px';
-            notification.style.zIndex = '9999';
-            notification.style.padding = 'var(--spacing-md)';
-            notification.style.borderRadius = 'var(--border-radius-md)';
-            notification.style.boxShadow = 'var(--shadow-lg)';
-            notification.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${message}`;
-
-            document.body.appendChild(notification);
-
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded');
+            loadTenant();
+            setInterval(() => { if (document.getElementById('chat-section').classList.contains('active')) loadChatMessages(); }, 5000);
+        });
     </script>
 </body>
 </html>

@@ -4,698 +4,519 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - TenantHub</title>
-    <link rel="stylesheet" href="global-styles.css">
+    <link rel="stylesheet" href="/global-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Admin Dashboard Specific Styles */
-        .admin-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .admin-sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            padding: var(--spacing-lg);
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .admin-main {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: var(--spacing-xl);
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: var(--spacing-lg);
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            cursor: pointer;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--gradient-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .sidebar-nav {
-            list-style: none;
-        }
-
-        .nav-item {
-            padding: var(--spacing-md) var(--spacing-lg);
-            margin-bottom: var(--spacing-sm);
-            border-radius: var(--border-radius-md);
-            cursor: pointer;
-            transition: var(--transition-base);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-        }
-
-        .nav-item:hover {
-            background: var(--bg-tertiary);
-        }
-
-        .nav-item.active {
-            background: var(--bg-tertiary);
-            border-left: 3px solid var(--neon-green);
-        }
-
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
-        }
-
-        .stat-card {
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg);
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: var(--spacing-sm);
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .tenant-actions {
-            display: flex;
-            gap: var(--spacing-md);
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .search-bar {
-            flex: 1;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 50px 14px 20px;
-        }
-
-        .search-icon {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .tenant-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: var(--spacing-lg);
-        }
-
-        .tenant-card {
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg);
-            transition: var(--transition-base);
-        }
-
-        .tenant-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--neon-cyan);
-        }
-
-        .tenant-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .tenant-name {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--text-primary);
-        }
-
-        .tenant-domain {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .tenant-email {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .tenant-status {
-            margin-bottom: var(--spacing-md);
-        }
-
-        .tenant-actions-card {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-
-        .chat-indicator {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--gradient-primary);
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-            animation: pulse 2s ease-in-out infinite;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .chat-modal {
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            width: 400px;
-            max-width: 90vw;
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-xl);
-            padding: var(--spacing-xl);
-            box-shadow: var(--shadow-xl);
-            z-index: 1000;
-            display: none;
-        }
-
-        .chat-modal.active {
-            display: block;
-            animation: slideUp 0.3s ease;
-        }
-
-        .chat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .chat-messages {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: var(--spacing-md);
-            padding: var(--spacing-md);
-            background: var(--bg-input);
-            border-radius: var(--border-radius-md);
-        }
-
-        .chat-message {
-            margin-bottom: var(--spacing-sm);
-            padding: var(--spacing-sm) var(--spacing-md);
-            border-radius: var(--border-radius-md);
-            max-width: 80%;
-        }
-
-        .chat-user-message {
-            background: var(--neon-green);
-            color: var(--bg-primary);
-            margin-left: auto;
-        }
-
-        .chat-tenant-message {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-        }
-
-        .chat-input-container {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: var(--border-radius-md);
-            background: var(--bg-input);
-            color: var(--text-primary);
-        }
-
-        .chat-send-btn {
-            padding: 12px 20px;
-            background: var(--gradient-primary);
-            border: none;
-            border-radius: var(--border-radius-md);
-            color: var(--bg-primary);
-            cursor: pointer;
-        }
-
-        .ai-insights {
-            background: var(--gradient-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-lg);
-            padding: var(--spacing-lg);
-            margin-top: var(--spacing-xl);
-        }
-
-        .ai-insight-item {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            padding: var(--spacing-md);
-            margin-bottom: var(--spacing-sm);
-            background: var(--bg-input);
-            border-radius: var(--border-radius-md);
-        }
-
-        .insight-icon {
-            font-size: 1.2rem;
-            color: var(--neon-cyan);
-        }
-
-        .insight-text {
-            flex: 1;
-            color: var(--text-secondary);
+        .admin-layout { display: flex; min-height: 100vh; }
+        .admin-sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); padding: var(--spacing-lg); position: fixed; height: 100vh; overflow-y: auto; }
+        .admin-main { flex: 1; margin-left: var(--sidebar-width); padding: var(--spacing-xl); }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color); margin-bottom: var(--spacing-xl); flex-wrap: wrap; gap: var(--spacing-md); }
+        .user-profile { display: flex; align-items: center; gap: var(--spacing-md); cursor: pointer; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .sidebar-nav { list-style: none; margin-top: var(--spacing-xl); }
+        .nav-item { padding: var(--spacing-md) var(--spacing-lg); margin-bottom: var(--spacing-sm); border-radius: var(--border-radius-md); cursor: pointer; display: flex; align-items: center; gap: var(--spacing-sm); color: var(--text-secondary); }
+        .nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+        .nav-item.active { background: var(--bg-tertiary); color: var(--neon-green); border-left: 3px solid var(--neon-green); }
+        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl); }
+        .stat-card { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-lg); text-align: center; }
+        .stat-value { font-size: 2.5rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; }
+        .tenant-actions { display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); flex-wrap: wrap; }
+        .search-bar { flex: 1; min-width: 250px; position: relative; }
+        .search-input { width: 100%; padding: 14px 50px 14px 20px; }
+        .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .tenant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--spacing-lg); }
+        .tenant-card { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-lg); }
+        .tenant-card:hover { transform: translateY(-3px); border-color: var(--neon-cyan); box-shadow: var(--shadow-lg); }
+        .tenant-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); }
+        .tenant-name { font-weight: 700; font-size: 1.1rem; }
+        .tenant-domain { color: var(--text-secondary); font-size: 0.9rem; }
+        .tenant-email { color: var(--text-muted); font-size: 0.85rem; margin: 4px 0; }
+        .tenant-credentials { background: var(--bg-input); border: 1px dashed var(--border-color); border-radius: 8px; padding: 10px; margin: 10px 0; font-size: 0.85rem; }
+        .login-url-link { color: var(--neon-cyan); word-break: break-all; display: block; margin: 6px 0; padding: 8px; background: var(--bg-secondary); border-radius: 6px; text-decoration: none; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .filter-tabs { display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-lg); flex-wrap: wrap; }
+        .filter-tab { padding: 8px 16px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); cursor: pointer; }
+        .filter-tab:hover { border-color: var(--neon-cyan); color: var(--text-primary); }
+        .filter-tab.active { background: var(--gradient-primary); border-color: var(--neon-green); color: var(--bg-primary); }
+        .empty-state { text-align: center; padding: 48px; color: var(--text-muted); }
+        .empty-state i { font-size: 4rem; opacity: 0.3; margin-bottom: var(--spacing-lg); }
+        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+        .toast { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow-xl); transform: translateX(120%); transition: transform 0.3s; margin-bottom: 10px; }
+        .toast.show { transform: translateX(0); }
+        .toast-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .toast-success .toast-icon { background: rgba(0,255,136,0.2); color: var(--neon-green); }
+        .toast-error .toast-icon { background: rgba(255,56,96,0.2); color: var(--neon-red); }
+        .toast-info .toast-icon { background: rgba(0,212,255,0.2); color: var(--neon-cyan); }
+        .chat-messages-section, .support-emails-section { max-height: 500px; overflow-y: auto; }
+        .message-group { margin-bottom: var(--spacing-xl); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); overflow: hidden; }
+        .message-group-header { padding: var(--spacing-md); background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .message-group-body { padding: var(--spacing-md); max-height: 300px; overflow-y: auto; }
+        .message-item { margin-bottom: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-input); border-radius: var(--border-radius-md); border-left: 3px solid var(--neon-cyan); }
+        .email-item { margin-bottom: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-input); border-radius: var(--border-radius-md); border-left: 3px solid var(--neon-yellow); }
+        @media (max-width: 768px) {
+            .admin-sidebar { transform: translateX(-100%); }
+            .admin-sidebar.open { transform: translateX(0); }
+            .admin-main { margin-left: 0; padding: var(--spacing-lg); }
+            .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+            .tenant-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" style="display:none;position:fixed;top:20px;left:20px;z-index:1001;background:var(--gradient-primary);border:none;border-radius:50%;width:50px;height:50px;color:white;font-size:1.25rem;cursor:pointer;"><i class="fas fa-bars"></i></button>
+    <div class="overlay" id="sidebar-overlay" onclick="toggleSidebar()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;"></div>
+
     <div class="admin-layout">
-        <!-- Sidebar -->
-        <aside class="admin-sidebar">
+        <aside class="admin-sidebar" id="admin-sidebar">
             <div style="text-align: center; margin-bottom: var(--spacing-xl);">
-                <div class="brand-logo" style="font-size: 3rem; margin-bottom: var(--spacing-sm);">
-                    <i class="fas fa-building"></i>
-                </div>
+                <div style="font-size: 3rem; margin-bottom: var(--spacing-sm); color: var(--neon-green);"><i class="fas fa-building"></i></div>
                 <h3 style="color: var(--neon-green); margin: 0;">TenantHub Admin</h3>
             </div>
-
             <ul class="sidebar-nav">
-                <li class="nav-item active">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('tenants')">
-                    <i class="fas fa-users"></i>
-                    <span>Tenants</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('analytics')">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Analytics</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('messages')">
-                    <i class="fas fa-comments"></i>
-                    <span>Messages</span>
-                    <span class="badge badge-pending" style="margin-left: auto;">3</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('settings')">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </li>
-                <li class="nav-item" onclick="navigateTo('ai-assistant')">
-                    <i class="fas fa-robot"></i>
-                    <span>AI Assistant</span>
-                </li>
+                <li class="nav-item active" onclick="showSection('dashboard', this)"><i class="fas fa-home"></i><span>Dashboard</span></li>
+                <li class="nav-item" onclick="showSection('tenants', this)"><i class="fas fa-users"></i><span>Tenants</span></li>
+                <li class="nav-item" onclick="showSection('chat-messages', this)"><i class="fas fa-comments"></i><span>Chat Messages</span><span class="badge badge-pending" id="chat-count" style="margin-left:auto;">0</span></li>
+                <li class="nav-item" onclick="showSection('support-emails', this)"><i class="fas fa-envelope"></i><span>Support Emails</span><span class="badge badge-pending" id="email-count" style="margin-left:auto;">0</span></li>
             </ul>
+            <div style="margin-top: auto; padding-top: var(--spacing-xl);">
+                <button class="btn btn-outline btn-full" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+            </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="admin-main">
-            <!-- Header -->
             <header class="admin-header">
-                <h1>Admin Dashboard</h1>
+                <div><h1>Admin Dashboard</h1><p style="color:var(--text-secondary);margin:0;">Manage tenants and communications</p></div>
                 <div class="user-profile">
                     <div class="avatar">A</div>
-                    <span>Admin User</span>
+                    <div><div style="font-weight:600;">Admin</div><div style="font-size:0.85rem;color:var(--text-muted);">admin@tenanthub.com</div></div>
                 </div>
             </header>
 
-            <!-- Stats Cards -->
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="total-tenants">0</div>
-                    <div class="stat-label">Total Tenants</div>
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="section active">
+                <div class="dashboard-stats">
+                    <div class="stat-card"><div class="stat-value" id="total-tenants">0</div><div class="stat-label">Total Tenants</div></div>
+                    <div class="stat-card"><div class="stat-value" id="active-tenants">0</div><div class="stat-label">Active Tenants</div></div>
+                    <div class="stat-card"><div class="stat-value" id="pending-tenants">0</div><div class="stat-label">Pending</div></div>
+                    <div class="stat-card"><div class="stat-value" id="chat-messages-count">0</div><div class="stat-label">Messages</div></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="active-tenants">0</div>
-                    <div class="stat-label">Active Tenants</div>
+                <div class="tenant-actions">
+                    <div class="search-bar"><input type="text" class="search-input" id="tenant-search" placeholder="Search tenants..." oninput="filterTenants()"><i class="fas fa-search search-icon"></i></div>
+                    <button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Add Tenant</button>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="pending-requests">0</div>
-                    <div class="stat-label">Pending Requests</div>
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+                    <button class="filter-tab" onclick="setFilter('active',this)">Active</button>
+                    <button class="filter-tab" onclick="setFilter('inactive',this)">Inactive</button>
+                    <button class="filter-tab" onclick="setFilter('pending',this)">Pending</button>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="ai-queries">0</div>
-                    <div class="stat-label">AI Queries</div>
-                </div>
-            </div>
+                <div class="tenant-grid" id="tenant-grid"></div>
+                <div class="empty-state hidden" id="empty-state"><i class="fas fa-users-slash"></i><h3>No Tenants</h3><p>Click "Add Tenant" to create one</p></div>
+            </section>
 
-            <!-- Search and Actions -->
-            <div class="tenant-actions">
-                <div class="search-bar">
-                    <input type="text" class="search-input" placeholder="Search tenants by name, domain, or email...">
-                    <i class="fas fa-search search-icon"></i>
-                </div>
-                <button class="btn btn-primary" onclick="showTenantModal()">
-                    <i class="fas fa-plus"></i> Add Tenant
-                </button>
-                <button class="btn btn-secondary" onclick="syncWithAI()">
-                    <i class="fas fa-sync-alt"></i> Sync AI
-                </button>
-            </div>
+            <!-- Tenants Section -->
+            <section id="tenants-section" class="section">
+                <div class="tenant-actions"><button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Add Tenant</button><button class="btn btn-secondary" onclick="loadTenants()"><i class="fas fa-sync"></i> Refresh</button></div>
+                <div class="tenant-grid" id="tenants-list"></div>
+            </section>
 
-            <!-- Tenant Grid -->
-            <div class="tenant-grid" id="tenant-grid">
-                <!-- Tenants will be populated here dynamically -->
-            </div>
+            <!-- Chat Messages Section -->
+            <section id="chat-messages-section" class="section">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
+                        <h3><i class="fas fa-comments"></i> Chat Messages</h3>
+                        <button class="btn btn-sm btn-outline" onclick="loadChatMessages()"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                    <div id="chat-messages-container" class="chat-messages-section"></div>
+                    <!-- Reply Modal -->
+                    <div class="modal-overlay" id="chat-reply-modal">
+                        <div class="modal">
+                            <div class="modal-header"><h3>Reply to Message</h3><button class="modal-close" onclick="closeChatReply()">×</button></div>
+                            <input type="hidden" id="reply-tenant-id">
+                            <input type="hidden" id="reply-tenant-name">
+                            <div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea" id="reply-message" placeholder="Type your reply..." style="min-height:100px;"></textarea></div>
+                            <div class="modal-footer"><button class="btn btn-ghost" onclick="closeChatReply()">Cancel</button><button class="btn btn-primary" onclick="sendReply()"><i class="fas fa-paper-plane"></i> Send Reply</button></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            <!-- AI Insights -->
-            <div class="ai-insights">
-                <h3><i class="fas fa-lightbulb"></i> AI Insights</h3>
-                <div class="ai-insight-item">
-                    <i class="fas fa-chart-line insight-icon"></i>
-                    <div class="insight-text">Acme Corporation shows increased activity this week</div>
+            <!-- Support Emails Section -->
+            <section id="support-emails-section" class="section">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
+                        <h3><i class="fas fa-envelope"></i> Support Emails</h3>
+                        <button class="btn btn-sm btn-outline" onclick="loadSupportEmails()"><i class="fas fa-sync"></i> Refresh</button>
+                    </div>
+                    <div id="support-emails-container" class="support-emails-section"></div>
+                    <!-- Reply Modal -->
+                    <div class="modal-overlay" id="email-reply-modal">
+                        <div class="modal">
+                            <div class="modal-header"><h3>Reply to Support Email</h3><button class="modal-close" onclick="closeEmailReply()">×</button></div>
+                            <input type="hidden" id="reply-email-id">
+                            <input type="hidden" id="reply-email-to">
+                            <div class="form-group"><label class="form-label">To</label><input type="email" class="form-input" id="email-to-display" readonly></div>
+                            <div class="form-group"><label class="form-label">Subject</label><input type="text" class="form-input" id="email-subject-display" readonly></div>
+                            <div class="form-group"><label class="form-label">Your Reply</label><textarea class="form-textarea" id="email-reply-content" placeholder="Type your reply..." style="min-height:150px;"></textarea></div>
+                            <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEmailReply()">Cancel</button><button class="btn btn-primary" onclick="sendEmailReply()"><i class="fas fa-paper-plane"></i> Send Reply</button></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="ai-insight-item">
-                    <i class="fas fa-exclamation-circle insight-icon"></i>
-                    <div class="insight-text">Global Services has pending support requests</div>
-                </div>
-                <div class="ai-insight-item">
-                    <i class="fas fa-info-circle insight-icon"></i>
-                    <div class="insight-text">Recommend reviewing inactive tenant policies</div>
-                </div>
-            </div>
+            </section>
         </main>
     </div>
 
     <!-- Add Tenant Modal -->
     <div class="modal-overlay" id="tenant-modal">
         <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title">Add New Tenant</h3>
-                <button class="modal-close" onclick="closeTenantModal()">&times;</button>
-            </div>
+            <div class="modal-header"><h3 class="modal-title">Add New Tenant</h3><button class="modal-close" onclick="closeModal()">×</button></div>
             <form id="add-tenant-form">
-                <div class="form-group">
-                    <label class="form-label">Company Name</label>
-                    <input type="text" class="form-input" name="name" required placeholder="Enter company name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Domain</label>
-                    <input type="text" class="form-input" name="domain" required placeholder="company.com">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Admin Email</label>
-                    <input type="email" class="form-input" name="email" required placeholder="admin@company.com">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Initial Password</label>
-                    <div class="password-wrapper">
-                        <input type="text" class="form-input" name="password" required placeholder="Auto-generated">
-                        <button type="button" class="password-toggle" onclick="generatePassword(this)">
-                            <i class="fas fa-key"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" name="status">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="pending">Pending</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Notes</label>
-                    <textarea class="form-textarea" name="notes" placeholder="Any additional notes..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Create Tenant</button>
+                <div class="form-group"><label class="form-label">Company Name</label><input type="text" class="form-input" id="new-name" required placeholder="Company name"></div>
+                <div class="form-group"><label class="form-label">Business Type</label><select class="form-select" id="new-business-type"><option value="office">Office</option><option value="clinic">Clinic</option><option value="daycare">Daycare</option><option value="restaurant">Restaurant</option><option value="retail">Retail</option><option value="salon">Salon</option><option value="gym">Gym</option><option value="school">School</option><option value="spa">Spa</option><option value="auto">Auto</option><option value="real-estate">Real Estate</option><option value="legal">Legal</option><option value="other">Other</option></select></div>
+                <div class="form-group"><label class="form-label">Domain</label><input type="text" class="form-input" id="new-domain" required placeholder="company.com"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="new-email" required placeholder="admin@company.com"></div>
+                <div class="form-group"><label class="form-label">Password</label><div class="password-wrapper"><input type="text" class="form-input" id="new-password" required placeholder="Password"><button type="button" class="password-toggle" onclick="genPass()" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;"><i class="fas fa-key"></i></button></div></div>
+                <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="new-description" placeholder="Brief description"></textarea></div>
+                <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="new-status"><option value="active">Active</option><option value="inactive">Inactive</option><option value="pending">Pending</option></select></div>
+                <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Create</button></div>
             </form>
         </div>
     </div>
 
-    <!-- Chat Modal -->
-    <div class="chat-modal" id="chat-modal">
-        <div class="chat-header">
-            <h3><i class="fas fa-comments"></i> Tenant Chat</h3>
-            <button class="modal-close" onclick="toggleChatModal()">&times;</button>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-            <div class="chat-message chat-tenant-message">
-                Hi admin! Need help with dashboard setup.
-            </div>
-            <div class="chat-message chat-user-message">
-                Sure, what specifically do you need help with?
-            </div>
-        </div>
-        <div class="chat-input-container">
-            <input type="text" class="chat-input" id="chat-input" placeholder="Type your message...">
-            <button class="chat-send-btn" onclick="sendMessage()">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+    <!-- Password Edit Modal -->
+    <div class="modal-overlay" id="password-modal">
+        <div class="modal">
+            <div class="modal-header"><h3 class="modal-title">Change Password</h3><button class="modal-close" onclick="closePasswordModal()">×</button></div>
+            <input type="hidden" id="password-tenant-id">
+            <div class="form-group"><label class="form-label">Tenant</label><input type="text" class="form-input" id="password-tenant-name" readonly></div>
+            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="password-tenant-email" readonly></div>
+            <div class="form-group"><label class="form-label">New Password</label><div class="password-wrapper"><input type="text" class="form-input" id="new-password-value" placeholder="Enter new password"><button type="button" class="password-toggle" onclick="genPassModal()" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;"><i class="fas fa-key"></i></button></div></div>
+            <div class="modal-footer"><button class="btn btn-ghost" onclick="closePasswordModal()">Cancel</button><button class="btn btn-primary" onclick="savePassword()"><i class="fas fa-save"></i> Save Password</button></div>
         </div>
     </div>
 
-    <!-- Chat Indicator -->
-    <button class="chat-indicator" onclick="toggleChatModal()">
-        <i class="fas fa-comments"></i>
-    </button>
+    <div id="toast-container" class="toast-container"></div>
 
-    <script src="database.js"></script>
     <script>
-        // Navigation
-        function navigateTo(section) {
-            alert(`Navigating to ${section} section`);
+        const API = '/api';
+        let allTenants = [];
+        let currentFilter = 'all';
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const icons = { success: '✓', error: '✕', info: 'ℹ' };
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><div class="toast-content">${msg}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.add('hiding'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // Tenant Management
-        function loadTenants() {
-            // Load tenants from database
-            const tenants = db.getAll('tenants');
+        function showSection(section, navItem) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(section + '-section').classList.add('active');
+            if (navItem) navItem.classList.add('active');
+            if (section === 'dashboard' || section === 'tenants') loadTenants();
+            if (section === 'chat-messages') loadChatMessages();
+            if (section === 'support-emails') loadSupportEmails();
+        }
+
+        async function loadTenants() {
+            try {
+                const res = await fetch(`${API}/tenants`);
+                allTenants = await res.json();
+                renderTenants();
+                updateStats();
+            } catch (e) { console.error(e); }
+        }
+
+        function renderTenants() {
             const grid = document.getElementById('tenant-grid');
-
-            grid.innerHTML = '';
-            tenants.forEach(tenant => {
-                const card = document.createElement('div');
-                card.className = 'tenant-card';
-                card.innerHTML = `
-                    <div class="tenant-header">
-                        <div class="tenant-name">${tenant.name}</div>
-                        <span class="badge badge-${tenant.status}">${tenant.status}</span>
-                    </div>
-                    <div class="tenant-domain">${tenant.domain}</div>
-                    <div class="tenant-email">${tenant.email}</div>
-                    <div class="tenant-status">
-                        Created: ${tenant.created}
-                    </div>
-                    <div class="tenant-actions-card">
-                        <button class="btn btn-sm btn-outline" onclick="editTenant(${tenant.id})">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="btn btn-sm btn-outline" onclick="viewTenant(${tenant.id})">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                        <button class="btn btn-sm btn-outline" onclick="chatWithTenant(${tenant.id})">
-                            <i class="fas fa-comment"></i> Chat
-                        </button>
-                    </div>
-                `;
-                grid.appendChild(card);
+            const list = document.getElementById('tenants-list');
+            const empty = document.getElementById('empty-state');
+            const search = document.getElementById('tenant-search').value.toLowerCase();
+            
+            let filtered = allTenants.filter(t => {
+                if (currentFilter !== 'all' && t.status !== currentFilter) return false;
+                if (search && !t.name.toLowerCase().includes(search) && !t.email.toLowerCase().includes(search)) return false;
+                return true;
             });
 
-            // Update stats
-            document.getElementById('total-tenants').textContent = tenants.length;
-            document.getElementById('active-tenants').textContent = tenants.filter(t => t.status === 'active').length;
-            document.getElementById('pending-requests').textContent = 3; // Mock data
-            document.getElementById('ai-queries').textContent = 42; // Mock data
+            if (filtered.length === 0) { grid.innerHTML = ''; list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+
+            const html = filtered.map(t => `
+                <div class="tenant-card">
+                    <div class="tenant-header"><span class="tenant-name">${escapeHtml(t.name)}</span><span class="badge badge-${t.status}">${t.status}</span></div>
+                    <div class="tenant-domain"><i class="fas fa-globe"></i> ${escapeHtml(t.domain)}</div>
+                    <div class="tenant-email"><i class="fas fa-envelope"></i> ${escapeHtml(t.email)}</div>
+                    <div style="margin:8px 0;"><span class="badge badge-info" style="font-size:0.75rem;"><i class="fas fa-${getBusinessIcon(t.businessType)}"></i> ${t.businessType||'Business'}</span></div>
+                    ${t.description ? `<div style="font-size:0.85rem;color:var(--text-secondary);margin:8px 0;"><i class="fas fa-info-circle"></i> ${escapeHtml(t.description)}</div>` : ''}
+                    <div class="tenant-credentials">
+                        <div><strong>Login URL:</strong></div>
+                        <a href="${window.location.origin}/login/${t.slug}" target="_blank" class="login-url-link">${window.location.origin}/login/${t.slug}</a>
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <button class="btn btn-sm btn-outline" onclick="copyLoginUrl('${t.slug}')" style="flex:1;"><i class="fas fa-copy"></i> Copy</button>
+                            <button class="btn btn-sm btn-outline" onclick="openLoginUrl('${t.slug}')" style="flex:1;"><i class="fas fa-external-link"></i> Open</button>
+                        </div>
+                        <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-color);display:flex;gap:12px;">
+                            <div style="flex:1;"><strong>Email:</strong><br><span style="color:var(--text-secondary);">${escapeHtml(t.email)}</span></div>
+                            <div style="flex:1;"><strong>Password:</strong><br><span style="color:var(--neon-green);">${escapeHtml(t.password)}</span></div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;"><i class="fas fa-calendar"></i> ${t.created}</div>
+                    <div style="display:flex;gap:var(--spacing-sm);flex-wrap:wrap;">
+                        <button class="btn btn-sm btn-outline" onclick="editTenant(${t.id})"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn btn-sm btn-outline" onclick="editPassword(${t.id})"><i class="fas fa-key"></i> Password</button>
+                        <button class="btn btn-sm btn-outline" onclick="deleteTenant(${t.id})"><i class="fas fa-trash"></i> Delete</button>
+                    </div>
+                </div>
+            `).join('');
+            grid.innerHTML = html;
+            list.innerHTML = html;
         }
 
-        // Modal Functions
-        function showTenantModal() {
-            document.getElementById('tenant-modal').classList.add('active');
+        function updateStats() {
+            document.getElementById('total-tenants').textContent = allTenants.length;
+            document.getElementById('active-tenants').textContent = allTenants.filter(t => t.status === 'active').length;
+            document.getElementById('pending-tenants').textContent = allTenants.filter(t => t.status === 'pending').length;
         }
 
-        function closeTenantModal() {
-            document.getElementById('tenant-modal').classList.remove('active');
+        function setFilter(status, btn) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTenants();
         }
 
-        // Form Handling
-        document.getElementById('add-tenant-form').addEventListener('submit', function(e) {
+        function filterTenants() { renderTenants(); }
+
+        function openModal() { document.getElementById('tenant-modal').classList.add('active'); document.getElementById('new-name').focus(); }
+        function closeModal() { document.getElementById('tenant-modal').classList.remove('active'); document.getElementById('add-tenant-form').reset(); }
+
+        function genPass() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+            let pass = '';
+            for (let i = 0; i < 12; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('new-password').value = pass;
+        }
+
+        document.getElementById('add-tenant-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-
             const tenant = {
-                name: formData.get('name'),
-                domain: formData.get('domain'),
-                email: formData.get('email'),
-                password: formData.get('password'),
-                status: formData.get('status'),
-                created: new Date().toISOString().split('T')[0],
-                notes: formData.get('notes')
+                name: document.getElementById('new-name').value,
+                businessType: document.getElementById('new-business-type').value,
+                domain: document.getElementById('new-domain').value,
+                email: document.getElementById('new-email').value,
+                password: document.getElementById('new-password').value,
+                description: document.getElementById('new-description').value,
+                status: document.getElementById('new-status').value
             };
-
-            db.create('tenants', tenant);
-
-            // Also add to users
-            const users = JSON.parse(localStorage.getItem('tenanthub_users') || '{"tenants": []}');
-            users.tenants.push({
-                email: tenant.email,
-                password: tenant.password,
-                id: db.getAll('tenants').slice(-1)[0].id, // Get last created tenant id
-                name: tenant.name
-            });
-            localStorage.setItem('tenanthub_users', JSON.stringify(users));
-
-            closeTenantModal();
-            loadTenants(); // Refresh the list
-            showNotification('Tenant created successfully!', 'success');
+            try {
+                const res = await fetch(`${API}/tenants`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tenant) });
+                const data = await res.json();
+                if (data.error) { showToast(data.error, 'error'); }
+                else { closeModal(); loadTenants(); showToast('Tenant created!', 'success'); }
+            } catch (e) { showToast('Server error', 'error'); }
         });
 
-        // Utility Functions
-        function generatePassword(button) {
-            const input = button.previousElementSibling;
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-            let password = '';
-            for (let i = 0; i < 12; i++) {
-                password += chars.charAt(Math.floor(Math.random() * chars.length));
+        async function editTenant(id) {
+            const t = allTenants.find(t => t.id === id);
+            if (!t) return;
+            const name = prompt('Company Name:', t.name); if (name === null) return;
+            const domain = prompt('Domain:', t.domain);
+            const email = prompt('Email:', t.email);
+            const status = prompt('Status (active/inactive/pending):', t.status);
+            const description = prompt('Description:', t.description || '');
+            try {
+                // Only send fields that were edited, password stays the same
+                const updates = { name, domain, email, status, description };
+                await fetch(`${API}/tenants/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updates) });
+                loadTenants();
+                showToast('Updated!', 'success');
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        async function deleteTenant(id) {
+            if (!confirm('Delete this tenant?')) return;
+            try {
+                await fetch(`${API}/tenants/${id}`, { method: 'DELETE' });
+                loadTenants();
+                showToast('Deleted!', 'success');
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        function copyLoginUrl(slug) { navigator.clipboard.writeText(`${window.location.origin}/login/${slug}`); showToast('URL copied!', 'success'); }
+        function openLoginUrl(slug) { window.open(`${window.location.origin}/login/${slug}`, '_blank'); }
+
+        async function loadChatMessages() {
+            try {
+                const res = await fetch(`${API}/chat`);
+                const messages = await res.json();
+                const container = document.getElementById('chat-messages-container');
+                const chatCount = document.getElementById('chat-count');
+                
+                if (messages.length === 0) { container.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><h3>No Messages</h3></div>'; chatCount.textContent = '0'; return; }
+                
+                const unreadCount = messages.filter(m => !m.read && m.sender === 'tenant').length;
+                chatCount.textContent = unreadCount;
+                
+                const grouped = {};
+                messages.forEach(m => { if (!grouped[m.tenantId]) grouped[m.tenantId] = []; grouped[m.tenantId].push(m); });
+                
+                container.innerHTML = Object.entries(grouped).map(([tenantId, msgs]) => {
+                    const tenant = allTenants.find(t => t.id == tenantId);
+                    const tenantName = tenant ? tenant.name : 'Unknown';
+                    return `<div class="message-group"><div class="message-group-header"><strong>${escapeHtml(tenantName)}</strong><span class="badge badge-info">${msgs.length} msgs</span></div><div class="message-group-body">${msgs.map(m => `<div class="message-item" style="${m.sender === 'tenant' ? 'border-left-color:var(--neon-cyan)' : 'border-left-color:var(--neon-green)'}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:0.85rem;color:var(--text-muted);">${m.sender === 'tenant' ? 'Tenant' : 'Admin'} • ${new Date(m.timestamp).toLocaleString()}</span>${m.sender === 'tenant' && !m.read ? '<span class="badge badge-pending" style="font-size:0.7rem;">New</span>' : ''}</div><div style="color:var(--text-primary);margin-bottom:8px;">${escapeHtml(m.text)}</div>${m.sender === 'tenant' ? `<button class="btn btn-sm btn-outline" onclick="openChatReply(${tenantId},'${escapeHtml(tenantName)}')"><i class="fas fa-reply"></i> Reply</button>` : ''}</div>`).join('')}</div></div>`;
+                }).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadSupportEmails() {
+            try {
+                const res = await fetch(`${API}/support-email`);
+                const emails = await res.json();
+                const container = document.getElementById('support-emails-container');
+                const emailCount = document.getElementById('email-count');
+                
+                if (emails.length === 0) { container.innerHTML = '<div class="empty-state"><i class="fas fa-envelope"></i><h3>No Emails</h3></div>'; emailCount.textContent = '0'; return; }
+                
+                const pendingCount = emails.filter(e => e.status !== 'resolved').length;
+                emailCount.textContent = pendingCount;
+                
+                container.innerHTML = emails.map(e => {
+                    const tenant = allTenants.find(t => t.id == e.tenantId);
+                    return `<div class="email-item" style="border-left-color:${e.status === 'resolved' ? 'var(--neon-green)' : 'var(--neon-yellow)'}"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--spacing-md);"><div><div style="font-weight:600;color:var(--text-primary);">${escapeHtml(e.subject)}</div><div style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">From: ${escapeHtml(e.tenantName)} (${escapeHtml(e.tenantEmail)}) • ${new Date(e.timestamp).toLocaleString()}</div></div><div style="display:flex;gap:8px;"><span class="badge badge-${e.status === 'resolved' ? 'active' : 'pending'}">${e.status || 'pending'}</span>${e.status !== 'resolved' ? `<button class="btn btn-sm btn-outline" onclick="openEmailReply(${e.id},'${escapeHtml(e.tenantEmail)}','${escapeHtml(e.subject)}')"><i class="fas fa-reply"></i> Reply</button>` : ''}</div></div><div style="white-space:pre-wrap;color:var(--text-secondary);background:var(--bg-secondary);padding:var(--spacing-md);border-radius:var(--border-radius-sm);margin-bottom:var(--spacing-md);">${escapeHtml(e.message)}</div></div>`;
+                }).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function markEmailResolved(id) {
+            try {
+                await fetch(`${API}/support-email/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'resolved' }) });
+                loadSupportEmails();
+                showToast('Marked resolved!', 'success');
+            } catch (e) { showToast('Error', 'error'); }
+        }
+
+        function getBusinessIcon(type) {
+            const icons = { clinic: 'user-doctor', daycare: 'children', restaurant: 'utensils', retail: 'store', salon: 'scissors', gym: 'dumbbell', office: 'briefcase', school: 'graduation-cap', spa: 'spa', auto: 'car', 'real-estate': 'house', legal: 'scale-balanced', other: 'building' };
+            return icons[type] || 'building';
+        }
+
+        function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+        function toggleSidebar() { document.getElementById('admin-sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('active'); }
+        function logout() { sessionStorage.removeItem('tenanthub_user'); showToast('Logging out...', 'info'); setTimeout(() => window.location.href = '/index.html', 1000); }
+
+        // Password Edit Functions
+        function editPassword(id) {
+            const tenant = allTenants.find(t => t.id === id);
+            if (!tenant) return;
+            document.getElementById('password-tenant-id').value = id;
+            document.getElementById('password-tenant-name').value = tenant.name;
+            document.getElementById('password-tenant-email').value = tenant.email;
+            document.getElementById('new-password-value').value = '';
+            document.getElementById('password-modal').classList.add('active');
+        }
+
+        function closePasswordModal() { document.getElementById('password-modal').classList.remove('active'); }
+
+        function genPassModal() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+            let pass = '';
+            for (let i = 0; i < 12; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('new-password-value').value = pass;
+        }
+
+        async function savePassword() {
+            const id = document.getElementById('password-tenant-id').value;
+            const newPassword = document.getElementById('new-password-value').value;
+            if (!newPassword) { showToast('Enter a password', 'error'); return; }
+            try {
+                // Send only the password field
+                const res = await fetch(`${API}/tenants/${id}`, { 
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ password: newPassword }) 
+                });
+                const data = await res.json();
+                console.log('Password updated:', data);
+                // Refresh tenants to get updated data
+                await loadTenants();
+                closePasswordModal();
+                showToast('Password updated! Tenant can now login with new password.', 'success');
+            } catch (e) { 
+                console.error('Password update error:', e);
+                showToast('Error updating password', 'error'); 
             }
-            input.value = password;
         }
 
-        function editTenant(id) {
-            const tenant = db.get('tenants', id);
-            // Fill form with tenant data and show modal
-            alert(`Editing tenant: ${tenant.name}`);
+        // Chat Reply Functions
+        function openChatReply(tenantId, tenantName) {
+            document.getElementById('reply-tenant-id').value = tenantId;
+            document.getElementById('reply-tenant-name').value = tenantName;
+            document.getElementById('reply-message').value = '';
+            document.getElementById('chat-reply-modal').classList.add('active');
         }
 
-        function viewTenant(id) {
-            const tenant = db.get('tenants', id);
-            // Show tenant details
-            alert(`Viewing tenant details: ${tenant.name}`);
+        function closeChatReply() { document.getElementById('chat-reply-modal').classList.remove('active'); }
+
+        async function sendReply() {
+            const tenantId = document.getElementById('reply-tenant-id').value;
+            const tenantName = document.getElementById('reply-tenant-name').value;
+            const message = document.getElementById('reply-message').value;
+            if (!message) { showToast('Enter a message', 'error'); return; }
+            try {
+                await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: parseInt(tenantId), tenantName, sender: 'admin', text: message, read: true }) });
+                closeChatReply();
+                loadChatMessages();
+                showToast('Reply sent!', 'success');
+            } catch (e) { showToast('Error', 'error'); }
         }
 
-        function chatWithTenant(id) {
-            const tenant = db.get('tenants', id);
-            toggleChatModal();
-            // Pre-populate chat with tenant info
-            document.querySelector('.chat-header h3').innerHTML = `<i class="fas fa-comments"></i> Chat with ${tenant.name}`;
+        // Email Reply Functions
+        function openEmailReply(id, to, subject) {
+            document.getElementById('reply-email-id').value = id;
+            document.getElementById('reply-email-to').value = to;
+            document.getElementById('email-to-display').value = to;
+            document.getElementById('email-subject-display').value = 'Re: ' + subject;
+            document.getElementById('email-reply-content').value = '';
+            document.getElementById('email-reply-modal').classList.add('active');
         }
 
-        function syncWithAI() {
-            showNotification('Syncing with AI assistant...', 'info');
-            // Simulate AI sync
-            setTimeout(() => {
-                showNotification('AI sync completed successfully!', 'success');
-            }, 2000);
+        function closeEmailReply() { document.getElementById('email-reply-modal').classList.remove('active'); }
+
+        async function sendEmailReply() {
+            const id = document.getElementById('reply-email-id').value;
+            const to = document.getElementById('reply-email-to').value;
+            const subject = document.getElementById('email-subject-display').value;
+            const reply = document.getElementById('email-reply-content').value;
+            if (!reply) { showToast('Enter a reply', 'error'); return; }
+            
+            // Open email client
+            const mailto = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(reply)}`;
+            window.location.href = mailto;
+            
+            // Mark as resolved
+            try {
+                await fetch(`${API}/support-email/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'resolved' }) });
+                closeEmailReply();
+                loadSupportEmails();
+                showToast('Reply opened in email client!', 'success');
+            } catch (e) { showToast('Error', 'error'); }
         }
 
-        function showNotification(message, type) {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `login-${type}`;
-            notification.style.position = 'fixed';
-            notification.style.top = '20px';
-            notification.style.right = '20px';
-            notification.style.zIndex = '9999';
-            notification.style.padding = 'var(--spacing-md)';
-            notification.style.borderRadius = 'var(--border-radius-md)';
-            notification.style.boxShadow = 'var(--shadow-lg)';
-            notification.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${message}`;
+        document.getElementById('tenant-modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+        document.getElementById('password-modal').addEventListener('click', function(e) { if (e.target === this) closePasswordModal(); });
+        document.getElementById('chat-reply-modal').addEventListener('click', function(e) { if (e.target === this) closeChatReply(); });
+        document.getElementById('email-reply-modal').addEventListener('click', function(e) { if (e.target === this) closeEmailReply(); });
 
-            document.body.appendChild(notification);
-
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-
-        // Chat Functions
-        let chatModalOpen = false;
-
-        function toggleChatModal() {
-            const modal = document.getElementById('chat-modal');
-            modal.classList.toggle('active');
-            chatModalOpen = modal.classList.contains('active');
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const message = input.value.trim();
-            if (!message) return;
-
-            // Add user message
-            addChatMessage(message, 'user');
-            input.value = '';
-
-            // Simulate response
-            setTimeout(() => {
-                addChatMessage("Thanks for your message! We'll get back to you soon.", 'tenant');
-            }, 1000);
-        }
-
-        function addChatMessage(text, sender) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message chat-${sender === 'user' ? 'user' : 'tenant'}-message`;
-            messageDiv.textContent = text;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTenants();
-
-            // Close modals when clicking outside
-            document.addEventListener('click', function(e) {
-                const modal = document.getElementById('tenant-modal');
-                if (modal.classList.contains('active') && e.target === modal) {
-                    closeTenantModal();
-                }
-            });
-
-            // Allow Enter key to submit chat message
-            document.getElementById('chat-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-        });
+        document.addEventListener('DOMContentLoaded', () => { loadTenants(); loadChatMessages(); loadSupportEmails(); });
     </script>
 </body>
 </html>

@@ -1,0 +1,121 @@
+{
+  "tenants": [
+    {
+      "id": 1,
+      "name": "Acme Corporation",
+      "domain": "acme.com",
+      "email": "admin@acme.com",
+      "password": "acme123",
+      "status": "active",
+      "created": "2025-01-15",
+      "description": "Leading manufacturer",
+      "slug": "acme-corporation",
+      "businessType": "office"
+    },
+    {
+      "id": 2,
+      "name": "TechStart Inc",
+      "domain": "techstart.io",
+      "email": "admin@techstart.io",
+      "password": "tech456",
+      "status": "active",
+      "created": "2025-02-20",
+      "description": "Technology solutions",
+      "slug": "techstart-inc",
+      "businessType": "office"
+    },
+    {
+      "id": 3,
+      "name": "Global Services",
+      "domain": "globalservices.net",
+      "email": "admin@globalservices.net",
+      "password": "newpass123",
+      "status": "active",
+      "created": "2025-03-01",
+      "description": "Business consulting",
+      "slug": "global-services",
+      "businessType": "office"
+    },
+    {
+      "id": 6,
+      "name": "Care Clinic",
+      "domain": "careclinic.com",
+      "email": "admin@careclinic.com",
+      "password": "clinic123",
+      "status": "active",
+      "created": "2025-03-15",
+      "description": "Family healthcare clinic",
+      "slug": "care-clinic",
+      "businessType": "clinic"
+    },
+    {
+      "id": 7,
+      "name": "Little Stars Daycare",
+      "domain": "littlestars.com",
+      "email": "admin@littlestars.com",
+      "password": "daycare123",
+      "status": "active",
+      "created": "2025-03-16",
+      "description": "Quality childcare services",
+      "slug": "little-stars-daycare",
+      "businessType": "daycare"
+    },
+    {
+      "id": 8,
+      "name": "Bella Salon",
+      "domain": "bellasalon.com",
+      "email": "admin@bellasalon.com",
+      "password": "salon123",
+      "status": "active",
+      "created": "2025-03-17",
+      "description": "Premium beauty salon",
+      "slug": "bella-salon",
+      "businessType": "salon"
+    }
+  ],
+  "users": {
+    "admin": {
+      "email": "admin@tenanthub.com",
+      "password": "admin123",
+      "role": "admin"
+    },
+    "admin@globalservices.net": {
+      "email": "admin@globalservices.net",
+      "password": "newpass123",
+      "role": "tenant",
+      "name": "Global Services"
+    }
+  },
+  "chatMessages": [
+    {
+      "id": 1774362934273,
+      "tenantId": 3,
+      "tenantName": "Global Services",
+      "sender": "tenant",
+      "text": "yoo",
+      "timestamp": "2026-03-24T14:35:34.268Z",
+      "read": false
+    },
+    {
+      "tenantId": 3,
+      "tenantName": "Global Services",
+      "sender": "admin",
+      "text": "yoo\n",
+      "read": true,
+      "timestamp": "2026-03-24T14:35:40.486Z"
+    }
+  ],
+  "supportEmails": [
+    {
+      "id": 1774362911120,
+      "tenantId": 3,
+      "tenantName": "Global Services",
+      "tenantEmail": "admin@globalservices.net",
+      "subject": "hi",
+      "message": "hi",
+      "timestamp": "2026-03-24T14:35:11.113Z",
+      "status": "resolved"
+    }
+  ],
+  "entities": {}
+}

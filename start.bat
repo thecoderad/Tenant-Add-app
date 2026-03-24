@@ -1,26 +1,66 @@
 @echo off
-REM TenantHub Startup Script
-REM Starts a local server to run TenantHub in a browser
-
+title TenantHub Server
+echo ╔═══════════════════════════════════════════════════════════╗
+echo ║                                                           ║
+echo ║              TenantHub - Business Management              ║
+echo ║                                                           ║
+echo ╚═══════════════════════════════════════════════════════════╝
 echo.
-echo ========================================
-echo    TenantHub - Multi-Tenant Platform
-echo ========================================
-echo.
 
-REM Check if Python is installed
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Error: Python is required to run TenantHub.
-    echo Please install Python from https://www.python.org/
-    pause
-    exit /b 1
+:: Kill any existing Node processes
+echo [1/3] Stopping existing Node processes...
+taskkill /F /IM node.exe 2>nul
+timeout /t 2 /nobreak >nul
+
+:: Check if node_modules exists
+if not exist "node_modules" (
+    echo [2/3] Installing dependencies...
+    call npm install
+    if errorlevel 1 (
+        echo.
+        echo ERROR: Failed to install dependencies!
+        echo Make sure Node.js is installed.
+        echo.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [2/3] Dependencies ready.
 )
 
-REM Start a simple HTTP server
-echo Starting TenantHub on http://localhost:8000
+echo [3/3] Starting server...
 echo.
-echo Press Ctrl+C to stop the server
+echo ═══════════════════════════════════════════════════════════
+echo 
+echo   ✓ Server starting at: http://localhost:3000
+echo
+echo   LOGIN CREDENTIALS:
+echo   ═══════════════════════════════════════
+echo   Admin:
+echo     Email: admin@tenanthub.com
+echo     Password: admin123
+echo
+echo   Demo Tenants:
+echo     Care Clinic: admin@careclinic.com / clinic123
+echo     Little Stars Daycare: admin@littlestars.com / daycare123
+echo     Bella Salon: admin@bellasalon.com / salon123
+echo     Acme Corporation: admin@acme.com / acme123
+echo
+echo   TENANT LOGIN URLs:
+echo   ═══════════════════════════════════════
+echo     http://localhost:3000/login/care-clinic
+echo     http://localhost:3000/login/little-stars-daycare
+echo     http://localhost:3000/login/bella-salon
+echo     http://localhost:3000/login/acme-corporation
+echo
+echo ═══════════════════════════════════════════════════════════
+echo.
+echo   IMPORTANT: Keep this window open while using TenantHub!
+echo   Press Ctrl+C to stop the server.
+echo.
+echo ═══════════════════════════════════════════════════════════
 echo.
 
-python -m http.server 8000
+call node server.js
+
+pause
