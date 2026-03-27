@@ -6,6 +6,7 @@
     <title>TenantHub - Multi-Tenant Platform</title>
     <link rel="stylesheet" href="/global-styles.css">
     <link rel="stylesheet" href="/login-styles.css">
+    <link rel="stylesheet" href="/theme.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -28,12 +29,7 @@
             </aside>
 
             <div class="login-box cyber-border">
-                <div class="login-header"><h2>Welcome Back</h2><p>Sign in to your account</p></div>
-
-                <div class="login-tabs">
-                    <button class="tab-btn active" onclick="switchTab('admin')">Admin</button>
-                    <button class="tab-btn" onclick="switchTab('tenant')">Tenant</button>
-                </div>
+                <div class="login-header"><h2>Admin Login</h2><p>Sign in to manage tenants</p></div>
 
                 <form id="admin-form" class="login-form">
                     <div class="form-group">
@@ -51,27 +47,14 @@
                     <div class="login-divider">Demo: admin@tenanthub.com / admin123</div>
                 </form>
 
-                <form id="tenant-form" class="login-form hidden">
-                    <div class="form-group">
-                        <label class="form-label">Tenant Email</label>
-                        <input type="email" id="tenant-email" class="form-input" placeholder="admin@acme.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <div class="password-wrapper">
-                            <input type="password" id="tenant-password" class="form-input" placeholder="••••••••" required>
-                            <button type="button" class="password-toggle" onclick="togglePassword('tenant')"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-secondary btn-full">Sign In as Tenant</button>
-                    <div class="login-divider">Demo: admin@acme.com / acme123</div>
-                </form>
-
                 <footer class="login-footer">
-                    <p class="demo-credentials"><strong>Pre-loaded Tenants:</strong><br>
-                    Acme Corp: admin@acme.com / acme123<br>
-                    TechStart: admin@techstart.io / tech456<br>
-                    Global: admin@globalservices.net / global789</p>
+                    <p class="demo-credentials"><strong>Tenant Login:</strong><br>
+                    Tenants should use their personalized URL:<br>
+                    <span style="color:var(--neon-cyan);">/login/{business-slug}</span><br><br>
+                    Examples:<br>
+                    /login/care-clinic<br>
+                    /login/little-stars-daycare<br>
+                    /login/bella-salon</p>
                 </footer>
             </div>
         </div>
@@ -110,13 +93,6 @@
             }
         }
 
-        // Tab switching
-        function switchTab(tab) {
-            document.getElementById('admin-form').classList.toggle('hidden', tab !== 'admin');
-            document.getElementById('tenant-form').classList.toggle('hidden', tab !== 'tenant');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase() === tab));
-        }
-
         // Password toggle
         function togglePassword(type) {
             const input = document.getElementById(type + '-password');
@@ -152,38 +128,6 @@
             } catch (err) {
                 showToast('Server error', 'error');
                 btn.innerHTML = 'Sign In as Admin';
-                btn.disabled = false;
-            }
-        });
-
-        // Tenant login
-        document.getElementById('tenant-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const btn = this.querySelector('button[type="submit"]');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API}/login/tenant`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: document.getElementById('tenant-email').value, password: document.getElementById('tenant-password').value })
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    sessionStorage.setItem('tenanthub_user', JSON.stringify({ role: 'tenant', email: data.tenant.email }));
-                    sessionStorage.setItem('current_tenant', JSON.stringify(data.tenant));
-                    showToast('Welcome! Redirecting...', 'success');
-                    setTimeout(() => window.location.href = 'tenant.html', 1000);
-                } else {
-                    showToast(data.error, 'error');
-                    btn.innerHTML = 'Sign In as Tenant';
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                showToast('Server error', 'error');
-                btn.innerHTML = 'Sign In as Tenant';
                 btn.disabled = false;
             }
         });

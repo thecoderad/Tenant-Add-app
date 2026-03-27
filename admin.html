@@ -4,313 +4,1760 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - TenantHub</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/global-styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/theme.css">
     <style>
-        .admin-layout { display: flex; min-height: 100vh; }
-        .admin-sidebar { width: var(--sidebar-width); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); padding: var(--spacing-lg); position: fixed; height: 100vh; overflow-y: auto; }
-        .admin-main { flex: 1; margin-left: var(--sidebar-width); padding: var(--spacing-xl); }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color); margin-bottom: var(--spacing-xl); flex-wrap: wrap; gap: var(--spacing-md); }
-        .user-profile { display: flex; align-items: center; gap: var(--spacing-md); cursor: pointer; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
-        .sidebar-nav { list-style: none; margin-top: var(--spacing-xl); }
-        .nav-item { padding: var(--spacing-md) var(--spacing-lg); margin-bottom: var(--spacing-sm); border-radius: var(--border-radius-md); cursor: pointer; display: flex; align-items: center; gap: var(--spacing-sm); color: var(--text-secondary); }
-        .nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
-        .nav-item.active { background: var(--bg-tertiary); color: var(--neon-green); border-left: 3px solid var(--neon-green); }
-        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl); }
-        .stat-card { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-lg); text-align: center; }
-        .stat-value { font-size: 2.5rem; font-weight: 700; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-label { color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; }
-        .tenant-actions { display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); flex-wrap: wrap; }
-        .search-bar { flex: 1; min-width: 250px; position: relative; }
-        .search-input { width: 100%; padding: 14px 50px 14px 20px; }
-        .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-        .tenant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--spacing-lg); }
-        .tenant-card { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-lg); }
-        .tenant-card:hover { transform: translateY(-3px); border-color: var(--neon-cyan); box-shadow: var(--shadow-lg); }
-        .tenant-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md); }
-        .tenant-name { font-weight: 700; font-size: 1.1rem; }
-        .tenant-domain { color: var(--text-secondary); font-size: 0.9rem; }
-        .tenant-email { color: var(--text-muted); font-size: 0.85rem; margin: 4px 0; }
-        .tenant-credentials { background: var(--bg-input); border: 1px dashed var(--border-color); border-radius: 8px; padding: 10px; margin: 10px 0; font-size: 0.85rem; }
-        .login-url-link { color: var(--neon-cyan); word-break: break-all; display: block; margin: 6px 0; padding: 8px; background: var(--bg-secondary); border-radius: 6px; text-decoration: none; }
-        .section { display: none; }
-        .section.active { display: block; }
-        .filter-tabs { display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-lg); flex-wrap: wrap; }
-        .filter-tab { padding: 8px 16px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-secondary); cursor: pointer; }
-        .filter-tab:hover { border-color: var(--neon-cyan); color: var(--text-primary); }
-        .filter-tab.active { background: var(--gradient-primary); border-color: var(--neon-green); color: var(--bg-primary); }
-        .empty-state { text-align: center; padding: 48px; color: var(--text-muted); }
-        .empty-state i { font-size: 4rem; opacity: 0.3; margin-bottom: var(--spacing-lg); }
-        .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .toast { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow-xl); transform: translateX(120%); transition: transform 0.3s; margin-bottom: 10px; }
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --info: #3b82f6;
+            --info-light: #eff6ff;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --gradient-secondary: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            --gradient-dark: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            color: #111827;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 70%);
+            top: -300px;
+            right: -300px;
+            animation: float 20s ease-in-out infinite;
+        }
+        .bg-animation::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+            bottom: -250px;
+            left: -250px;
+            animation: float 25s ease-in-out infinite reverse;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--gray-200);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            box-shadow: var(--shadow-lg);
+        }
+        .sidebar.open { transform: translateX(-100%); }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-200);
+            background: linear-gradient(135deg, var(--primary-light) 0%, transparent 100%);
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .brand-logo {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow-md);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(79, 70, 229, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(79, 70, 229, 0.6); }
+        }
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .nav-section { margin-bottom: 24px; }
+        .nav-section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray-400);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        .nav-list { list-style: none; }
+        .nav-item { margin-bottom: 4px; }
+        .nav-link {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            background: var(--gradient-primary);
+            transition: var(--transition);
+            opacity: 0.1;
+        }
+        .nav-link:hover::before { width: 100%; }
+        .nav-link:hover {
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+        .nav-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .nav-link.active::before { width: 100%; }
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .nav-badge {
+            margin-left: auto;
+            background: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .user-info { flex: 1; }
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--gray-900);
+        }
+        .user-email {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+        .btn-logout {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid var(--danger-light);
+            color: var(--danger);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+        .btn-logout:hover {
+            background: var(--danger);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        /* Header */
+        .header {
+            height: var(--header-height);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .menu-toggle {
+            display: none;
+            width: 44px;
+            height: 44px;
+            background: var(--gray-100);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--gray-600);
+            transition: var(--transition);
+        }
+        .menu-toggle:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: rotate(90deg);
+        }
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        .page-subtitle {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 20px 12px 44px;
+            background: var(--gray-100);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            background: var(--gray-100);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            transition: var(--transition);
+            position: relative;
+        }
+        .icon-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateY(-2px) rotate(5deg);
+        }
+        .notification-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes ping {
+            75%, 100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Content Area */
+        .content {
+            padding: 32px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+        .stat-card.primary::before { background: var(--gradient-primary); }
+        .stat-card.success::before { background: var(--gradient-success); }
+        .stat-card.warning::before { background: var(--gradient-warning); }
+        .stat-card.info::before { background: var(--gradient-secondary); }
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+        }
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .stat-icon.primary { background: var(--primary-light); color: var(--primary); }
+        .stat-icon.success { background: var(--success-light); color: var(--success); }
+        .stat-icon.warning { background: var(--warning-light); color: var(--warning); }
+        .stat-icon.info { background: var(--info-light); color: var(--info); }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--danger); }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .card:hover { box-shadow: var(--shadow-md); }
+        .card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        .card-title i { color: var(--primary); }
+        .card-body { padding: 24px; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.5);
+        }
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+        .btn-secondary:hover {
+            background: var(--gray-200);
+            transform: translateY(-2px);
+        }
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        /* Tenant/Business Card */
+        .business-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid var(--gray-200);
+        }
+        .business-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+        .business-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .business-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+        .business-icon.clinic { background: linear-gradient(135deg, #fecaca 0%, #ef4444 100%); color: white; }
+        .business-icon.daycare { background: linear-gradient(135deg, #fde68a 0%, #f59e0b 100%); color: white; }
+        .business-icon.salon { background: linear-gradient(135deg, #fbcfe8 0%, #ec4899 100%); color: white; }
+        .business-icon.restaurant { background: linear-gradient(135deg, #fed7aa 0%, #f97316 100%); color: white; }
+        .business-icon.retail { background: linear-gradient(135deg, #ddd6fe 0%, #8b5cf6 100%); color: white; }
+        .business-icon.gym { background: linear-gradient(135deg, #a7f3d0 0%, #10b981 100%); color: white; }
+        .business-icon.office { background: linear-gradient(135deg, #bfdbfe 0%, #3b82f6 100%); color: white; }
+        .business-icon.school { background: linear-gradient(135deg, #a5f3fc 0%, #06b6d4 100%); color: white; }
+        .business-icon.other { background: linear-gradient(135deg, #e5e7eb 0%, #6b7280 100%); color: white; }
+        .business-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+        .business-domain {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+        .business-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        .business-info i { color: var(--gray-400); }
+        .business-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge.active { background: var(--success-light); color: var(--success); }
+        .badge.pending { background: var(--warning-light); color: var(--warning); }
+        .badge.inactive { background: var(--gray-200); color: var(--gray-600); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            background: var(--gray-100);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            transition: var(--transition);
+        }
+        .modal-close:hover {
+            background: var(--danger-light);
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+        .modal-body { padding: 24px; }
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        /* Form */
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+        .form-textarea { min-height: 100px; resize: vertical; }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+        }
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 10px;
+            transform: translateX(120%);
+            transition: var(--transition);
+            min-width: 300px;
+        }
         .toast.show { transform: translateX(0); }
-        .toast-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-        .toast-success .toast-icon { background: rgba(0,255,136,0.2); color: var(--neon-green); }
-        .toast-error .toast-icon { background: rgba(255,56,96,0.2); color: var(--neon-red); }
-        .toast-info .toast-icon { background: rgba(0,212,255,0.2); color: var(--neon-cyan); }
-        .chat-messages-section, .support-emails-section { max-height: 500px; overflow-y: auto; }
-        .message-group { margin-bottom: var(--spacing-xl); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); overflow: hidden; }
-        .message-group-header { padding: var(--spacing-md); background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .message-group-body { padding: var(--spacing-md); max-height: 300px; overflow-y: auto; }
-        .message-item { margin-bottom: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-input); border-radius: var(--border-radius-md); border-left: 3px solid var(--neon-cyan); }
-        .email-item { margin-bottom: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-input); border-radius: var(--border-radius-md); border-left: 3px solid var(--neon-yellow); }
-        @media (max-width: 768px) {
-            .admin-sidebar { transform: translateX(-100%); }
-            .admin-sidebar.open { transform: translateX(0); }
-            .admin-main { margin-left: 0; padding: var(--spacing-lg); }
-            .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
-            .tenant-grid { grid-template-columns: 1fr; }
+        .toast.hiding { transform: translateX(120%); opacity: 0; }
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+        .toast.success .toast-icon { background: var(--success-light); color: var(--success); }
+        .toast.error .toast-icon { background: var(--danger-light); color: var(--danger); }
+        .toast.info .toast-icon { background: var(--info-light); color: var(--info); }
+        .toast-message {
+            flex: 1;
+            font-weight: 500;
+            color: var(--gray-900);
+        }
+
+        /* Section */
+        .section { display: none; }
+        .section.active { display: block; animation: fadeInSection 0.4s ease; }
+        @keyframes fadeInSection {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Chat Messages */
+        .message-group {
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+        .message-group:hover { box-shadow: var(--shadow-md); }
+        .message-group-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .message-group-body {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .message-item {
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--primary);
+        }
+        .message-item.admin { border-left-color: var(--secondary); }
+
+        /* Support Email */
+        .email-item {
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            border-left: 4px solid var(--warning);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            transition: var(--transition);
+        }
+        .email-item:hover { box-shadow: var(--shadow-md); }
+        .email-item.resolved { border-left-color: var(--success); }
+
+        /* Filters */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        .filter-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .filter-tab.active {
+            background: var(--gradient-primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-500);
+        }
+        .empty-state i {
+            font-size: 4rem;
+            opacity: 0.3;
+            margin-bottom: 20px;
+        }
+
+        /* Sidebar Toggle for Mobile */
+        .sidebar-toggle-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+        }
+        .sidebar-toggle-btn:hover { transform: scale(1.1); }
+
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+        }
+        .overlay.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar-toggle-btn { display: flex; align-items: center; justify-content: center; }
+            .menu-toggle { display: flex; }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .search-box { width: 200px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .header { padding: 0 16px; }
+            .content { padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .grid { grid-template-columns: 1fr; }
+            .search-box { display: none; }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Welcome Banner */
+        .welcome-banner {
+            background: var(--gradient-primary);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 32px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate { to { transform: rotate(360deg); } }
+        .welcome-content { position: relative; z-index: 1; }
+        .welcome-greeting {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .welcome-message {
+            font-size: 1rem;
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
-    <button class="sidebar-toggle" onclick="toggleSidebar()" style="display:none;position:fixed;top:20px;left:20px;z-index:1001;background:var(--gradient-primary);border:none;border-radius:50%;width:50px;height:50px;color:white;font-size:1.25rem;cursor:pointer;"><i class="fas fa-bars"></i></button>
-    <div class="overlay" id="sidebar-overlay" onclick="toggleSidebar()" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;"></div>
+    <!-- Background Animation -->
+    <div class="bg-animation"></div>
 
-    <div class="admin-layout">
-        <aside class="admin-sidebar" id="admin-sidebar">
-            <div style="text-align: center; margin-bottom: var(--spacing-xl);">
-                <div style="font-size: 3rem; margin-bottom: var(--spacing-sm); color: var(--neon-green);"><i class="fas fa-building"></i></div>
-                <h3 style="color: var(--neon-green); margin: 0;">TenantHub Admin</h3>
-            </div>
-            <ul class="sidebar-nav">
-                <li class="nav-item active" onclick="showSection('dashboard', this)"><i class="fas fa-home"></i><span>Dashboard</span></li>
-                <li class="nav-item" onclick="showSection('tenants', this)"><i class="fas fa-users"></i><span>Tenants</span></li>
-                <li class="nav-item" onclick="showSection('chat-messages', this)"><i class="fas fa-comments"></i><span>Chat Messages</span><span class="badge badge-pending" id="chat-count" style="margin-left:auto;">0</span></li>
-                <li class="nav-item" onclick="showSection('support-emails', this)"><i class="fas fa-envelope"></i><span>Support Emails</span><span class="badge badge-pending" id="email-count" style="margin-left:auto;">0</span></li>
-            </ul>
-            <div style="margin-top: auto; padding-top: var(--spacing-xl);">
-                <button class="btn btn-outline btn-full" onclick="logout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
-            </div>
-        </aside>
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" onclick="toggleAdminTheme()">
+        <span class="icon">🌙</span>
+        <span>Dark Mode</span>
+    </button>
+    <button class="theme-toggle-mobile" onclick="toggleAdminTheme()">
+        <i class="fas fa-moon"></i>
+    </button>
 
-        <main class="admin-main">
-            <header class="admin-header">
-                <div><h1>Admin Dashboard</h1><p style="color:var(--text-secondary);margin:0;">Manage tenants and communications</p></div>
-                <div class="user-profile">
-                    <div class="avatar">A</div>
-                    <div><div style="font-weight:600;">Admin</div><div style="font-size:0.85rem;color:var(--text-muted);">admin@tenanthub.com</div></div>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i class="fas fa-building"></i>
                 </div>
-            </header>
+                <div>
+                    <div class="brand-name">TenantHub</div>
+                    <div class="brand-subtitle">Admin Console</div>
+                </div>
+            </div>
+        </div>
 
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-label">Platform</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <button class="nav-link active" onclick="showSection('dashboard', this)">
+                            <span class="nav-icon"><i class="fas fa-th-large"></i></span>
+                            <span>Dashboard</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="showSection('businesses', this)">
+                            <span class="nav-icon"><i class="fas fa-building"></i></span>
+                            <span>Businesses</span>
+                            <span class="nav-badge" id="tenant-count-badge">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="showSection('analytics', this)">
+                            <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+                            <span>Analytics</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">Communication</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="showSection('messages', this)">
+                            <span class="nav-icon"><i class="fas fa-comments"></i></span>
+                            <span>Messages</span>
+                            <span class="nav-badge" id="chat-badge">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="showSection('support', this)">
+                            <span class="nav-icon"><i class="fas fa-envelope"></i></span>
+                            <span>Support</span>
+                            <span class="nav-badge" id="support-badge">0</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-label">System</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="showSection('activity', this)">
+                            <span class="nav-icon"><i class="fas fa-history"></i></span>
+                            <span>Activity</span>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="showSection('settings', this)">
+                            <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                            <span>Settings</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <div class="user-info">
+                    <div class="user-name">Platform Admin</div>
+                    <div class="user-email">admin@tenanthub.com</div>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div>
+                    <h1 class="page-title" id="page-title">Dashboard</h1>
+                    <p class="page-subtitle" id="page-subtitle">Manage your platform</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search businesses, users..." id="global-search" oninput="filterTenants()">
+                </div>
+                <button class="icon-btn" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button>
+                <button class="icon-btn" title="Refresh" onclick="refreshAll()">
+                    <i class="fas fa-sync"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
             <!-- Dashboard Section -->
             <section id="dashboard-section" class="section active">
-                <div class="dashboard-stats">
-                    <div class="stat-card"><div class="stat-value" id="total-tenants">0</div><div class="stat-label">Total Tenants</div></div>
-                    <div class="stat-card"><div class="stat-value" id="active-tenants">0</div><div class="stat-label">Active Tenants</div></div>
-                    <div class="stat-card"><div class="stat-value" id="pending-tenants">0</div><div class="stat-label">Pending</div></div>
-                    <div class="stat-card"><div class="stat-value" id="chat-messages-count">0</div><div class="stat-label">Messages</div></div>
-                </div>
-                <div class="tenant-actions">
-                    <div class="search-bar"><input type="text" class="search-input" id="tenant-search" placeholder="Search tenants..." oninput="filterTenants()"><i class="fas fa-search search-icon"></i></div>
-                    <button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Add Tenant</button>
-                </div>
-                <div class="filter-tabs">
-                    <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
-                    <button class="filter-tab" onclick="setFilter('active',this)">Active</button>
-                    <button class="filter-tab" onclick="setFilter('inactive',this)">Inactive</button>
-                    <button class="filter-tab" onclick="setFilter('pending',this)">Pending</button>
-                </div>
-                <div class="tenant-grid" id="tenant-grid"></div>
-                <div class="empty-state hidden" id="empty-state"><i class="fas fa-users-slash"></i><h3>No Tenants</h3><p>Click "Add Tenant" to create one</p></div>
-            </section>
-
-            <!-- Tenants Section -->
-            <section id="tenants-section" class="section">
-                <div class="tenant-actions"><button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Add Tenant</button><button class="btn btn-secondary" onclick="loadTenants()"><i class="fas fa-sync"></i> Refresh</button></div>
-                <div class="tenant-grid" id="tenants-list"></div>
-            </section>
-
-            <!-- Chat Messages Section -->
-            <section id="chat-messages-section" class="section">
-                <div class="card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
-                        <h3><i class="fas fa-comments"></i> Chat Messages</h3>
-                        <button class="btn btn-sm btn-outline" onclick="loadChatMessages()"><i class="fas fa-sync"></i> Refresh</button>
+                <!-- Welcome Banner -->
+                <div class="welcome-banner">
+                    <div class="welcome-content">
+                        <h2 class="welcome-greeting" id="welcome-greeting">Good morning, Admin</h2>
+                        <p class="welcome-message">Here's your platform overview for today.</p>
                     </div>
-                    <div id="chat-messages-container" class="chat-messages-section"></div>
-                    <!-- Reply Modal -->
-                    <div class="modal-overlay" id="chat-reply-modal">
-                        <div class="modal">
-                            <div class="modal-header"><h3>Reply to Message</h3><button class="modal-close" onclick="closeChatReply()">×</button></div>
-                            <input type="hidden" id="reply-tenant-id">
-                            <input type="hidden" id="reply-tenant-name">
-                            <div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea" id="reply-message" placeholder="Type your reply..." style="min-height:100px;"></textarea></div>
-                            <div class="modal-footer"><button class="btn btn-ghost" onclick="closeChatReply()">Cancel</button><button class="btn btn-primary" onclick="sendReply()"><i class="fas fa-paper-plane"></i> Send Reply</button></div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Total Businesses</div>
+                                <div class="stat-value" id="stat-total">0</div>
+                            </div>
+                            <div class="stat-icon primary">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All registered</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Active</div>
+                                <div class="stat-value" id="stat-active">0</div>
+                            </div>
+                            <div class="stat-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Operational</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Pending</div>
+                                <div class="stat-value" id="stat-pending">0</div>
+                            </div>
+                            <div class="stat-icon warning">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change">
+                            <span>Awaiting activation</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Messages</div>
+                                <div class="stat-value" id="stat-messages">0</div>
+                            </div>
+                            <div class="stat-icon info">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change">
+                            <span>Unread conversations</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Businesses -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-building"></i>
+                            Recent Businesses
+                        </h3>
+                        <button class="btn btn-primary btn-sm" onclick="showSection('businesses', document.querySelectorAll('.nav-link')[1])">
+                            <i class="fas fa-plus"></i>
+                            Add Business
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid" id="recent-businesses-grid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Businesses Section -->
+            <section id="businesses-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-building"></i>
+                            All Businesses
+                        </h3>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-secondary btn-sm" onclick="loadTenants()">
+                                <i class="fas fa-sync"></i>
+                                Refresh
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="openModal()">
+                                <i class="fas fa-plus"></i>
+                                Add Business
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
+                            <button class="filter-tab" onclick="setFilter('active', this)">Active</button>
+                            <button class="filter-tab" onclick="setFilter('pending', this)">Pending</button>
+                            <button class="filter-tab" onclick="setFilter('inactive', this)">Inactive</button>
+                        </div>
+                        <div class="grid" id="businesses-grid"></div>
+                        <div class="empty-state" id="businesses-empty" style="display: none;">
+                            <i class="fas fa-building"></i>
+                            <h3>No Businesses Found</h3>
+                            <p>Click "Add Business" to create your first tenant</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Support Emails Section -->
-            <section id="support-emails-section" class="section">
+            <!-- Messages Section -->
+            <section id="messages-section" class="section">
                 <div class="card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
-                        <h3><i class="fas fa-envelope"></i> Support Emails</h3>
-                        <button class="btn btn-sm btn-outline" onclick="loadSupportEmails()"><i class="fas fa-sync"></i> Refresh</button>
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-comments"></i>
+                            Chat Messages
+                        </h3>
+                        <button class="btn btn-secondary btn-sm" onclick="loadChatMessages()">
+                            <i class="fas fa-sync"></i>
+                            Refresh
+                        </button>
                     </div>
-                    <div id="support-emails-container" class="support-emails-section"></div>
-                    <!-- Reply Modal -->
-                    <div class="modal-overlay" id="email-reply-modal">
-                        <div class="modal">
-                            <div class="modal-header"><h3>Reply to Support Email</h3><button class="modal-close" onclick="closeEmailReply()">×</button></div>
-                            <input type="hidden" id="reply-email-id">
-                            <input type="hidden" id="reply-email-to">
-                            <div class="form-group"><label class="form-label">To</label><input type="email" class="form-input" id="email-to-display" readonly></div>
-                            <div class="form-group"><label class="form-label">Subject</label><input type="text" class="form-input" id="email-subject-display" readonly></div>
-                            <div class="form-group"><label class="form-label">Your Reply</label><textarea class="form-textarea" id="email-reply-content" placeholder="Type your reply..." style="min-height:150px;"></textarea></div>
-                            <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEmailReply()">Cancel</button><button class="btn btn-primary" onclick="sendEmailReply()"><i class="fas fa-paper-plane"></i> Send Reply</button></div>
+                    <div class="card-body" id="messages-container"></div>
+                </div>
+            </section>
+
+            <!-- Support Section -->
+            <section id="support-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-envelope"></i>
+                            Support Emails
+                        </h3>
+                        <button class="btn btn-secondary btn-sm" onclick="loadSupportEmails()">
+                            <i class="fas fa-sync"></i>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="card-body" id="support-container"></div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line"></i>
+                            Analytics
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <i class="fas fa-chart-bar"></i>
+                            <h3>Analytics Dashboard</h3>
+                            <p>Coming soon - Track platform performance</p>
                         </div>
                     </div>
                 </div>
             </section>
-        </main>
-    </div>
 
-    <!-- Add Tenant Modal -->
-    <div class="modal-overlay" id="tenant-modal">
+            <!-- Activity Section -->
+            <section id="activity-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-history"></i>
+                            Activity Logs
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>Activity Logs</h3>
+                            <p>Coming soon - View system activities</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <i class="fas fa-sliders-h"></i>
+                            <h3>Platform Settings</h3>
+                            <p>Coming soon - Configure platform</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Add Business Modal -->
+    <div class="modal-overlay" id="modal-overlay">
         <div class="modal">
-            <div class="modal-header"><h3 class="modal-title">Add New Tenant</h3><button class="modal-close" onclick="closeModal()">×</button></div>
-            <form id="add-tenant-form">
-                <div class="form-group"><label class="form-label">Company Name</label><input type="text" class="form-input" id="new-name" required placeholder="Company name"></div>
-                <div class="form-group"><label class="form-label">Business Type</label><select class="form-select" id="new-business-type"><option value="office">Office</option><option value="clinic">Clinic</option><option value="daycare">Daycare</option><option value="restaurant">Restaurant</option><option value="retail">Retail</option><option value="salon">Salon</option><option value="gym">Gym</option><option value="school">School</option><option value="spa">Spa</option><option value="auto">Auto</option><option value="real-estate">Real Estate</option><option value="legal">Legal</option><option value="other">Other</option></select></div>
-                <div class="form-group"><label class="form-label">Domain</label><input type="text" class="form-input" id="new-domain" required placeholder="company.com"></div>
-                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="new-email" required placeholder="admin@company.com"></div>
-                <div class="form-group"><label class="form-label">Password</label><div class="password-wrapper"><input type="text" class="form-input" id="new-password" required placeholder="Password"><button type="button" class="password-toggle" onclick="genPass()" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;"><i class="fas fa-key"></i></button></div></div>
-                <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="new-description" placeholder="Brief description"></textarea></div>
-                <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="new-status"><option value="active">Active</option><option value="inactive">Inactive</option><option value="pending">Pending</option></select></div>
-                <div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Create</button></div>
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Business</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="add-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Business Name *</label>
+                        <input type="text" class="form-input" id="new-name" required placeholder="e.g., Acme Corporation">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Business Type *</label>
+                            <select class="form-select" id="new-type" required>
+                                <option value="office">Office</option>
+                                <option value="clinic">Clinic</option>
+                                <option value="daycare">Daycare</option>
+                                <option value="restaurant">Restaurant</option>
+                                <option value="retail">Retail</option>
+                                <option value="salon">Salon</option>
+                                <option value="gym">Gym</option>
+                                <option value="school">School</option>
+                                <option value="spa">Spa</option>
+                                <option value="auto">Auto Service</option>
+                                <option value="real-estate">Real Estate</option>
+                                <option value="legal">Legal Services</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Domain *</label>
+                            <input type="text" class="form-input" id="new-domain" required placeholder="company.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-input" id="new-email" required placeholder="admin@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-input" id="new-password" required placeholder="Enter password">
+                            <button type="button" class="btn btn-secondary" onclick="generatePassword()" title="Generate">
+                                <i class="fas fa-key"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="new-description" placeholder="Brief description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="new-status">
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Create Business
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- Password Edit Modal -->
-    <div class="modal-overlay" id="password-modal">
+    <!-- Edit Business Modal -->
+    <div class="modal-overlay" id="edit-modal-overlay">
         <div class="modal">
-            <div class="modal-header"><h3 class="modal-title">Change Password</h3><button class="modal-close" onclick="closePasswordModal()">×</button></div>
-            <input type="hidden" id="password-tenant-id">
-            <div class="form-group"><label class="form-label">Tenant</label><input type="text" class="form-input" id="password-tenant-name" readonly></div>
-            <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="password-tenant-email" readonly></div>
-            <div class="form-group"><label class="form-label">New Password</label><div class="password-wrapper"><input type="text" class="form-input" id="new-password-value" placeholder="Enter new password"><button type="button" class="password-toggle" onclick="genPassModal()" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;"><i class="fas fa-key"></i></button></div></div>
-            <div class="modal-footer"><button class="btn btn-ghost" onclick="closePasswordModal()">Cancel</button><button class="btn btn-primary" onclick="savePassword()"><i class="fas fa-save"></i> Save Password</button></div>
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Business</h3>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="edit-form">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-group">
+                        <label class="form-label">Business Name *</label>
+                        <input type="text" class="form-input" id="edit-name" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Business Type *</label>
+                            <select class="form-select" id="edit-type" required>
+                                <option value="office">Office</option>
+                                <option value="clinic">Clinic</option>
+                                <option value="daycare">Daycare</option>
+                                <option value="restaurant">Restaurant</option>
+                                <option value="retail">Retail</option>
+                                <option value="salon">Salon</option>
+                                <option value="gym">Gym</option>
+                                <option value="school">School</option>
+                                <option value="spa">Spa</option>
+                                <option value="auto">Auto Service</option>
+                                <option value="real-estate">Real Estate</option>
+                                <option value="legal">Legal Services</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Domain *</label>
+                            <input type="text" class="form-input" id="edit-domain" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-input" id="edit-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-input" id="edit-password" placeholder="Leave blank to keep current">
+                            <button type="button" class="btn btn-secondary" onclick="generatePasswordEdit()">
+                                <i class="fas fa-key"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="edit-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="edit-status">
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <div id="toast-container" class="toast-container"></div>
+    <!-- Reply Modal -->
+    <div class="modal-overlay" id="reply-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Reply to Message</h3>
+                <button class="modal-close" onclick="closeReplyModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="reply-tenant-id">
+                <input type="hidden" id="reply-tenant-name">
+                <div class="form-group">
+                    <label class="form-label">Message</label>
+                    <textarea class="form-textarea" id="reply-message" placeholder="Type your reply..." style="min-height: 120px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeReplyModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendReply()">
+                    <i class="fas fa-paper-plane"></i>
+                    Send Reply
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="/realtime-sync.js"></script>
     <script>
         const API = '/api';
         let allTenants = [];
         let currentFilter = 'all';
+        let realTimeSync = null;
 
-        function showToast(msg, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const icons = { success: '✓', error: '✕', info: 'ℹ' };
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><div class="toast-content">${msg}</div>`;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.add('hiding'); setTimeout(() => toast.remove(), 300); }, 3000);
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateGreeting();
+            loadDashboard();
+            setTimeout(initRealTimeSync, 500);
+        });
+
+        // Update greeting
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+            document.getElementById('welcome-greeting').textContent = `${greeting}, Admin`;
         }
 
-        function showSection(section, navItem) {
+        // Initialize Real-time Sync
+        function initRealTimeSync() {
+            realTimeSync = Object.create(RealTimeSync);
+            realTimeSync.init({
+                refreshInterval: 3000,
+                chatRefreshInterval: 2000,
+                enableAnimation: true
+            });
+
+            realTimeSync.subscribe('tenants', (data) => {
+                allTenants = data;
+                updateStats();
+                renderBusinesses();
+                updateBadges();
+            });
+
+            realTimeSync.subscribe('chatMessages', () => {
+                loadChatMessages();
+                updateBadges();
+            });
+
+            realTimeSync.subscribe('supportEmails', () => {
+                loadSupportEmails();
+                updateBadges();
+            });
+        }
+
+        // Load Dashboard
+        async function loadDashboard() {
+            await loadTenants();
+            updateBadges();
+        }
+
+        // Show Section
+        function showSection(section, navElement) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(section + '-section').classList.add('active');
-            if (navItem) navItem.classList.add('active');
-            if (section === 'dashboard' || section === 'tenants') loadTenants();
-            if (section === 'chat-messages') loadChatMessages();
-            if (section === 'support-emails') loadSupportEmails();
+
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            if (navElement) navElement.classList.add('active');
+
+            const titles = {
+                dashboard: 'Dashboard',
+                businesses: 'Business Management',
+                messages: 'Chat Messages',
+                support: 'Support Emails',
+                analytics: 'Analytics',
+                activity: 'Activity Logs',
+                settings: 'Settings'
+            };
+            const subtitles = {
+                dashboard: 'Platform overview',
+                businesses: 'Create and manage tenants',
+                messages: 'Communicate with tenants',
+                support: 'Handle support requests',
+                analytics: 'Performance metrics',
+                activity: 'System activities',
+                settings: 'Platform configuration'
+            };
+            document.getElementById('page-title').textContent = titles[section];
+            document.getElementById('page-subtitle').textContent = subtitles[section];
+
+            if (section === 'businesses') renderBusinesses();
+            if (section === 'messages') loadChatMessages();
+            if (section === 'support') loadSupportEmails();
+
+            if (window.innerWidth <= 1024) toggleSidebar();
         }
 
+        // Toggle Sidebar
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        // Load Tenants
         async function loadTenants() {
             try {
                 const res = await fetch(`${API}/tenants`);
                 allTenants = await res.json();
-                renderTenants();
                 updateStats();
-            } catch (e) { console.error(e); }
+                renderBusinesses();
+                updateBadges();
+            } catch (e) {
+                showToast('Error loading businesses', 'error');
+            }
         }
 
-        function renderTenants() {
-            const grid = document.getElementById('tenant-grid');
-            const list = document.getElementById('tenants-list');
-            const empty = document.getElementById('empty-state');
-            const search = document.getElementById('tenant-search').value.toLowerCase();
-            
+        // Update Stats
+        function updateStats() {
+            document.getElementById('stat-total').textContent = allTenants.length;
+            document.getElementById('stat-active').textContent = allTenants.filter(t => t.status === 'active').length;
+            document.getElementById('stat-pending').textContent = allTenants.filter(t => t.status === 'pending').length;
+            document.getElementById('tenant-count-badge').textContent = allTenants.length;
+        }
+
+        // Update Badges
+        function updateBadges() {
+            fetch(`${API}/chat`)
+                .then(r => r.json())
+                .then(msgs => {
+                    const unread = msgs.filter(m => !m.read && m.sender === 'tenant').length;
+                    document.getElementById('chat-badge').textContent = unread;
+                    document.getElementById('stat-messages').textContent = msgs.length;
+                });
+
+            fetch(`${API}/support-email`)
+                .then(r => r.json())
+                .then(emails => {
+                    const pending = emails.filter(e => e.status !== 'resolved').length;
+                    document.getElementById('support-badge').textContent = pending;
+                });
+        }
+
+        // Render Businesses
+        function renderBusinesses() {
+            const grid = document.getElementById('businesses-grid');
+            const recentGrid = document.getElementById('recent-businesses-grid');
+            const empty = document.getElementById('businesses-empty');
+            const search = document.getElementById('global-search')?.value.toLowerCase() || '';
+
             let filtered = allTenants.filter(t => {
                 if (currentFilter !== 'all' && t.status !== currentFilter) return false;
                 if (search && !t.name.toLowerCase().includes(search) && !t.email.toLowerCase().includes(search)) return false;
                 return true;
             });
 
-            if (filtered.length === 0) { grid.innerHTML = ''; list.innerHTML = ''; empty.classList.remove('hidden'); return; }
-            empty.classList.add('hidden');
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
 
+            empty.style.display = 'none';
             const html = filtered.map(t => `
-                <div class="tenant-card">
-                    <div class="tenant-header"><span class="tenant-name">${escapeHtml(t.name)}</span><span class="badge badge-${t.status}">${t.status}</span></div>
-                    <div class="tenant-domain"><i class="fas fa-globe"></i> ${escapeHtml(t.domain)}</div>
-                    <div class="tenant-email"><i class="fas fa-envelope"></i> ${escapeHtml(t.email)}</div>
-                    <div style="margin:8px 0;"><span class="badge badge-info" style="font-size:0.75rem;"><i class="fas fa-${getBusinessIcon(t.businessType)}"></i> ${t.businessType||'Business'}</span></div>
-                    ${t.description ? `<div style="font-size:0.85rem;color:var(--text-secondary);margin:8px 0;"><i class="fas fa-info-circle"></i> ${escapeHtml(t.description)}</div>` : ''}
-                    <div class="tenant-credentials">
-                        <div><strong>Login URL:</strong></div>
-                        <a href="${window.location.origin}/login/${t.slug}" target="_blank" class="login-url-link">${window.location.origin}/login/${t.slug}</a>
-                        <div style="display:flex;gap:8px;margin-top:8px;">
-                            <button class="btn btn-sm btn-outline" onclick="copyLoginUrl('${t.slug}')" style="flex:1;"><i class="fas fa-copy"></i> Copy</button>
-                            <button class="btn btn-sm btn-outline" onclick="openLoginUrl('${t.slug}')" style="flex:1;"><i class="fas fa-external-link"></i> Open</button>
-                        </div>
-                        <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-color);display:flex;gap:12px;">
-                            <div style="flex:1;"><strong>Email:</strong><br><span style="color:var(--text-secondary);">${escapeHtml(t.email)}</span></div>
-                            <div style="flex:1;"><strong>Password:</strong><br><span style="color:var(--neon-green);">${escapeHtml(t.password)}</span></div>
-                        </div>
+                <div class="business-card">
+                    <div class="business-icon ${t.businessType || 'other'}">
+                        <i class="fas fa-${getBusinessIcon(t.businessType)}"></i>
                     </div>
-                    <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;"><i class="fas fa-calendar"></i> ${t.created}</div>
-                    <div style="display:flex;gap:var(--spacing-sm);flex-wrap:wrap;">
-                        <button class="btn btn-sm btn-outline" onclick="editTenant(${t.id})"><i class="fas fa-edit"></i> Edit</button>
-                        <button class="btn btn-sm btn-outline" onclick="editPassword(${t.id})"><i class="fas fa-key"></i> Password</button>
-                        <button class="btn btn-sm btn-outline" onclick="deleteTenant(${t.id})"><i class="fas fa-trash"></i> Delete</button>
+                    <div class="business-header">
+                        <div>
+                            <div class="business-name">${escapeHtml(t.name)}</div>
+                            <div class="business-domain">${escapeHtml(t.domain)}</div>
+                        </div>
+                        <span class="badge badge-${t.status}">${t.status}</span>
+                    </div>
+                    <div class="business-info">
+                        <i class="fas fa-envelope"></i>
+                        <span>${escapeHtml(t.email)}</span>
+                    </div>
+                    ${t.description ? `<div class="business-info"><i class="fas fa-info-circle"></i><span>${escapeHtml(t.description)}</span></div>` : ''}
+                    <div class="business-info">
+                        <i class="fas fa-link"></i>
+                        <a href="/login/${t.slug}" target="_blank" style="color: var(--primary); text-decoration: none;">/login/${t.slug}</a>
+                    </div>
+                    <div class="business-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editBusiness(${t.id})">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="copyLoginUrl('${t.slug}')">
+                            <i class="fas fa-copy"></i>
+                            Copy URL
+                        </button>
+                        <button class="btn btn-secondary btn-sm" style="color: var(--danger);" onclick="deleteBusiness(${t.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
             `).join('');
+
             grid.innerHTML = html;
-            list.innerHTML = html;
+            if (recentGrid) recentGrid.innerHTML = html.slice(0, 3).join('');
         }
 
-        function updateStats() {
-            document.getElementById('total-tenants').textContent = allTenants.length;
-            document.getElementById('active-tenants').textContent = allTenants.filter(t => t.status === 'active').length;
-            document.getElementById('pending-tenants').textContent = allTenants.filter(t => t.status === 'pending').length;
-        }
-
+        // Filter
         function setFilter(status, btn) {
             currentFilter = status;
             document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            renderTenants();
+            renderBusinesses();
         }
 
-        function filterTenants() { renderTenants(); }
+        function filterTenants() {
+            renderBusinesses();
+        }
 
-        function openModal() { document.getElementById('tenant-modal').classList.add('active'); document.getElementById('new-name').focus(); }
-        function closeModal() { document.getElementById('tenant-modal').classList.remove('active'); document.getElementById('add-tenant-form').reset(); }
+        // Modal Functions
+        function openModal() {
+            document.getElementById('modal-overlay').classList.add('active');
+            document.getElementById('new-name').focus();
+        }
 
-        function genPass() {
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            document.getElementById('add-form').reset();
+        }
+
+        function openEditModal() {
+            document.getElementById('edit-modal-overlay').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal-overlay').classList.remove('active');
+            document.getElementById('edit-form').reset();
+        }
+
+        function generatePassword() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
             let pass = '';
             for (let i = 0; i < 12; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
             document.getElementById('new-password').value = pass;
         }
 
-        document.getElementById('add-tenant-form').addEventListener('submit', async function(e) {
+        function generatePasswordEdit() {
+            generatePassword();
+        }
+
+        // Create Business
+        document.getElementById('add-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const tenant = {
                 name: document.getElementById('new-name').value,
-                businessType: document.getElementById('new-business-type').value,
+                businessType: document.getElementById('new-type').value,
                 domain: document.getElementById('new-domain').value,
                 email: document.getElementById('new-email').value,
                 password: document.getElementById('new-password').value,
@@ -318,205 +1765,308 @@
                 status: document.getElementById('new-status').value
             };
             try {
-                const res = await fetch(`${API}/tenants`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tenant) });
+                const res = await fetch(`${API}/tenants`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tenant)
+                });
                 const data = await res.json();
-                if (data.error) { showToast(data.error, 'error'); }
-                else { closeModal(); loadTenants(); showToast('Tenant created!', 'success'); }
-            } catch (e) { showToast('Server error', 'error'); }
+                if (data.error) {
+                    showToast(data.error, 'error');
+                } else {
+                    closeModal();
+                    loadTenants();
+                    showToast('Business created successfully!', 'success');
+                }
+            } catch (e) {
+                showToast('Error creating business', 'error');
+            }
         });
 
-        async function editTenant(id) {
+        // Edit Business
+        async function editBusiness(id) {
             const t = allTenants.find(t => t.id === id);
             if (!t) return;
-            const name = prompt('Company Name:', t.name); if (name === null) return;
-            const domain = prompt('Domain:', t.domain);
-            const email = prompt('Email:', t.email);
-            const status = prompt('Status (active/inactive/pending):', t.status);
-            const description = prompt('Description:', t.description || '');
-            try {
-                // Only send fields that were edited, password stays the same
-                const updates = { name, domain, email, status, description };
-                await fetch(`${API}/tenants/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updates) });
-                loadTenants();
-                showToast('Updated!', 'success');
-            } catch (e) { showToast('Error', 'error'); }
+
+            document.getElementById('edit-id').value = t.id;
+            document.getElementById('edit-name').value = t.name;
+            document.getElementById('edit-type').value = t.businessType || 'office';
+            document.getElementById('edit-domain').value = t.domain;
+            document.getElementById('edit-email').value = t.email;
+            document.getElementById('edit-password').value = '';
+            document.getElementById('edit-description').value = t.description || '';
+            document.getElementById('edit-status').value = t.status;
+
+            openEditModal();
         }
 
-        async function deleteTenant(id) {
-            if (!confirm('Delete this tenant?')) return;
+        // Update Business
+        document.getElementById('edit-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('edit-id').value);
+            const tenant = {
+                name: document.getElementById('edit-name').value,
+                businessType: document.getElementById('edit-type').value,
+                domain: document.getElementById('edit-domain').value,
+                email: document.getElementById('edit-email').value,
+                description: document.getElementById('edit-description').value,
+                status: document.getElementById('edit-status').value
+            };
+            const password = document.getElementById('edit-password').value;
+            if (password) tenant.password = password;
+
+            try {
+                const res = await fetch(`${API}/tenants/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(tenant)
+                });
+                const data = await res.json();
+                if (data.error) {
+                    showToast(data.error, 'error');
+                } else {
+                    closeEditModal();
+                    loadTenants();
+                    showToast('Business updated!', 'success');
+                }
+            } catch (e) {
+                showToast('Error updating business', 'error');
+            }
+        });
+
+        // Delete Business
+        async function deleteBusiness(id) {
+            if (!confirm('Delete this business? This cannot be undone.')) return;
             try {
                 await fetch(`${API}/tenants/${id}`, { method: 'DELETE' });
                 loadTenants();
-                showToast('Deleted!', 'success');
-            } catch (e) { showToast('Error', 'error'); }
+                showToast('Business deleted', 'success');
+            } catch (e) {
+                showToast('Error deleting business', 'error');
+            }
         }
 
-        function copyLoginUrl(slug) { navigator.clipboard.writeText(`${window.location.origin}/login/${slug}`); showToast('URL copied!', 'success'); }
-        function openLoginUrl(slug) { window.open(`${window.location.origin}/login/${slug}`, '_blank'); }
+        // Copy Login URL
+        function copyLoginUrl(slug) {
+            const url = `${window.location.origin}/login/${slug}`;
+            navigator.clipboard.writeText(url);
+            showToast('Login URL copied!', 'success');
+        }
 
+        // Load Chat Messages
         async function loadChatMessages() {
             try {
                 const res = await fetch(`${API}/chat`);
                 const messages = await res.json();
-                const container = document.getElementById('chat-messages-container');
-                const chatCount = document.getElementById('chat-count');
-                
-                if (messages.length === 0) { container.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><h3>No Messages</h3></div>'; chatCount.textContent = '0'; return; }
-                
-                const unreadCount = messages.filter(m => !m.read && m.sender === 'tenant').length;
-                chatCount.textContent = unreadCount;
-                
+                const container = document.getElementById('messages-container');
+
+                if (messages.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><h3>No messages yet</h3><p>Start communicating with tenants</p></div>';
+                    return;
+                }
+
                 const grouped = {};
-                messages.forEach(m => { if (!grouped[m.tenantId]) grouped[m.tenantId] = []; grouped[m.tenantId].push(m); });
-                
+                messages.forEach(m => {
+                    if (!grouped[m.tenantId]) grouped[m.tenantId] = [];
+                    grouped[m.tenantId].push(m);
+                });
+
                 container.innerHTML = Object.entries(grouped).map(([tenantId, msgs]) => {
                     const tenant = allTenants.find(t => t.id == tenantId);
                     const tenantName = tenant ? tenant.name : 'Unknown';
-                    return `<div class="message-group"><div class="message-group-header"><strong>${escapeHtml(tenantName)}</strong><span class="badge badge-info">${msgs.length} msgs</span></div><div class="message-group-body">${msgs.map(m => `<div class="message-item" style="${m.sender === 'tenant' ? 'border-left-color:var(--neon-cyan)' : 'border-left-color:var(--neon-green)'}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:0.85rem;color:var(--text-muted);">${m.sender === 'tenant' ? 'Tenant' : 'Admin'} • ${new Date(m.timestamp).toLocaleString()}</span>${m.sender === 'tenant' && !m.read ? '<span class="badge badge-pending" style="font-size:0.7rem;">New</span>' : ''}</div><div style="color:var(--text-primary);margin-bottom:8px;">${escapeHtml(m.text)}</div>${m.sender === 'tenant' ? `<button class="btn btn-sm btn-outline" onclick="openChatReply(${tenantId},'${escapeHtml(tenantName)}')"><i class="fas fa-reply"></i> Reply</button>` : ''}</div>`).join('')}</div></div>`;
+                    return `
+                        <div class="message-group">
+                            <div class="message-group-header">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="user-avatar" style="width: 36px; height: 36px; font-size: 0.875rem;">${tenantName.charAt(0)}</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--gray-900);">${escapeHtml(tenantName)}</div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500);">${msgs.length} messages</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary btn-sm" onclick="openReplyModal(${tenantId}, '${escapeHtml(tenantName)}')">
+                                    <i class="fas fa-reply"></i>
+                                    Reply
+                                </button>
+                            </div>
+                            <div class="message-group-body">
+                                ${msgs.map(m => `
+                                    <div class="message-item ${m.sender}">
+                                        <div style="font-size: 0.875rem; color: var(--gray-700); margin-bottom: 4px;">${escapeHtml(m.text)}</div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500);">${new Date(m.timestamp).toLocaleString()}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
                 }).join('');
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                showToast('Error loading messages', 'error');
+            }
         }
 
+        // Load Support Emails
         async function loadSupportEmails() {
             try {
                 const res = await fetch(`${API}/support-email`);
                 const emails = await res.json();
-                const container = document.getElementById('support-emails-container');
-                const emailCount = document.getElementById('email-count');
-                
-                if (emails.length === 0) { container.innerHTML = '<div class="empty-state"><i class="fas fa-envelope"></i><h3>No Emails</h3></div>'; emailCount.textContent = '0'; return; }
-                
-                const pendingCount = emails.filter(e => e.status !== 'resolved').length;
-                emailCount.textContent = pendingCount;
-                
+                const container = document.getElementById('support-container');
+
+                if (emails.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-envelope"></i><h3>No support emails</h3><p>No support requests yet</p></div>';
+                    return;
+                }
+
                 container.innerHTML = emails.map(e => {
                     const tenant = allTenants.find(t => t.id == e.tenantId);
-                    return `<div class="email-item" style="border-left-color:${e.status === 'resolved' ? 'var(--neon-green)' : 'var(--neon-yellow)'}"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--spacing-md);"><div><div style="font-weight:600;color:var(--text-primary);">${escapeHtml(e.subject)}</div><div style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">From: ${escapeHtml(e.tenantName)} (${escapeHtml(e.tenantEmail)}) • ${new Date(e.timestamp).toLocaleString()}</div></div><div style="display:flex;gap:8px;"><span class="badge badge-${e.status === 'resolved' ? 'active' : 'pending'}">${e.status || 'pending'}</span>${e.status !== 'resolved' ? `<button class="btn btn-sm btn-outline" onclick="openEmailReply(${e.id},'${escapeHtml(e.tenantEmail)}','${escapeHtml(e.subject)}')"><i class="fas fa-reply"></i> Reply</button>` : ''}</div></div><div style="white-space:pre-wrap;color:var(--text-secondary);background:var(--bg-secondary);padding:var(--spacing-md);border-radius:var(--border-radius-sm);margin-bottom:var(--spacing-md);">${escapeHtml(e.message)}</div></div>`;
+                    return `
+                        <div class="email-item ${e.status === 'resolved' ? 'resolved' : ''}">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--gray-900); margin-bottom: 4px;">${escapeHtml(e.subject)}</div>
+                                    <div style="font-size: 0.875rem; color: var(--gray-500);">
+                                        From: ${escapeHtml(e.tenantName)} (${escapeHtml(e.tenantEmail)}) • ${new Date(e.timestamp).toLocaleString()}
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span class="badge badge-${e.status === 'resolved' ? 'active' : 'pending'}">${e.status || 'pending'}</span>
+                                    ${e.status !== 'resolved' ? `
+                                        <button class="btn btn-primary btn-sm" onclick="markEmailResolved(${e.id})">
+                                            <i class="fas fa-check"></i>
+                                            Resolve
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div style="background: var(--gray-50); padding: 16px; border-radius: 12px; color: var(--gray-700); white-space: pre-wrap;">${escapeHtml(e.message)}</div>
+                        </div>
+                    `;
                 }).join('');
-            } catch (e) { console.error(e); }
-        }
-
-        async function markEmailResolved(id) {
-            try {
-                await fetch(`${API}/support-email/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'resolved' }) });
-                loadSupportEmails();
-                showToast('Marked resolved!', 'success');
-            } catch (e) { showToast('Error', 'error'); }
-        }
-
-        function getBusinessIcon(type) {
-            const icons = { clinic: 'user-doctor', daycare: 'children', restaurant: 'utensils', retail: 'store', salon: 'scissors', gym: 'dumbbell', office: 'briefcase', school: 'graduation-cap', spa: 'spa', auto: 'car', 'real-estate': 'house', legal: 'scale-balanced', other: 'building' };
-            return icons[type] || 'building';
-        }
-
-        function escapeHtml(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
-        function toggleSidebar() { document.getElementById('admin-sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('active'); }
-        function logout() { sessionStorage.removeItem('tenanthub_user'); showToast('Logging out...', 'info'); setTimeout(() => window.location.href = '/index.html', 1000); }
-
-        // Password Edit Functions
-        function editPassword(id) {
-            const tenant = allTenants.find(t => t.id === id);
-            if (!tenant) return;
-            document.getElementById('password-tenant-id').value = id;
-            document.getElementById('password-tenant-name').value = tenant.name;
-            document.getElementById('password-tenant-email').value = tenant.email;
-            document.getElementById('new-password-value').value = '';
-            document.getElementById('password-modal').classList.add('active');
-        }
-
-        function closePasswordModal() { document.getElementById('password-modal').classList.remove('active'); }
-
-        function genPassModal() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
-            let pass = '';
-            for (let i = 0; i < 12; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
-            document.getElementById('new-password-value').value = pass;
-        }
-
-        async function savePassword() {
-            const id = document.getElementById('password-tenant-id').value;
-            const newPassword = document.getElementById('new-password-value').value;
-            if (!newPassword) { showToast('Enter a password', 'error'); return; }
-            try {
-                // Send only the password field
-                const res = await fetch(`${API}/tenants/${id}`, { 
-                    method: 'PUT', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ password: newPassword }) 
-                });
-                const data = await res.json();
-                console.log('Password updated:', data);
-                // Refresh tenants to get updated data
-                await loadTenants();
-                closePasswordModal();
-                showToast('Password updated! Tenant can now login with new password.', 'success');
-            } catch (e) { 
-                console.error('Password update error:', e);
-                showToast('Error updating password', 'error'); 
+            } catch (e) {
+                showToast('Error loading emails', 'error');
             }
         }
 
-        // Chat Reply Functions
-        function openChatReply(tenantId, tenantName) {
+        // Mark Email Resolved
+        async function markEmailResolved(id) {
+            try {
+                await fetch(`${API}/support-email/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'resolved' })
+                });
+                loadSupportEmails();
+                showToast('Marked as resolved', 'success');
+            } catch (e) {
+                showToast('Error', 'error');
+            }
+        }
+
+        // Reply Modal
+        function openReplyModal(tenantId, tenantName) {
             document.getElementById('reply-tenant-id').value = tenantId;
             document.getElementById('reply-tenant-name').value = tenantName;
             document.getElementById('reply-message').value = '';
-            document.getElementById('chat-reply-modal').classList.add('active');
+            document.getElementById('reply-modal-overlay').classList.add('active');
         }
 
-        function closeChatReply() { document.getElementById('chat-reply-modal').classList.remove('active'); }
+        function closeReplyModal() {
+            document.getElementById('reply-modal-overlay').classList.remove('active');
+        }
 
         async function sendReply() {
             const tenantId = document.getElementById('reply-tenant-id').value;
             const tenantName = document.getElementById('reply-tenant-name').value;
             const message = document.getElementById('reply-message').value;
-            if (!message) { showToast('Enter a message', 'error'); return; }
+
+            if (!message) {
+                showToast('Enter a message', 'error');
+                return;
+            }
+
             try {
-                await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: parseInt(tenantId), tenantName, sender: 'admin', text: message, read: true }) });
-                closeChatReply();
+                await fetch(`${API}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tenantId: parseInt(tenantId),
+                        tenantName,
+                        sender: 'admin',
+                        text: message,
+                        read: true
+                    })
+                });
+                closeReplyModal();
                 loadChatMessages();
                 showToast('Reply sent!', 'success');
-            } catch (e) { showToast('Error', 'error'); }
+            } catch (e) {
+                showToast('Error sending reply', 'error');
+            }
         }
 
-        // Email Reply Functions
-        function openEmailReply(id, to, subject) {
-            document.getElementById('reply-email-id').value = id;
-            document.getElementById('reply-email-to').value = to;
-            document.getElementById('email-to-display').value = to;
-            document.getElementById('email-subject-display').value = 'Re: ' + subject;
-            document.getElementById('email-reply-content').value = '';
-            document.getElementById('email-reply-modal').classList.add('active');
+        // Refresh All
+        function refreshAll() {
+            loadTenants();
+            loadChatMessages();
+            loadSupportEmails();
+            showToast('Refreshed!', 'success');
         }
 
-        function closeEmailReply() { document.getElementById('email-reply-modal').classList.remove('active'); }
+        // Utility Functions
+        function getBusinessIcon(type) {
+            const icons = {
+                clinic: 'user-doctor', daycare: 'children', restaurant: 'utensils',
+                retail: 'store', salon: 'scissors', gym: 'dumbbell',
+                office: 'briefcase', school: 'graduation-cap', spa: 'spa',
+                auto: 'car', 'real-estate': 'house', legal: 'scale-balanced',
+                other: 'building'
+            };
+            return icons[type] || 'building';
+        }
 
-        async function sendEmailReply() {
-            const id = document.getElementById('reply-email-id').value;
-            const to = document.getElementById('reply-email-to').value;
-            const subject = document.getElementById('email-subject-display').value;
-            const reply = document.getElementById('email-reply-content').value;
-            if (!reply) { showToast('Enter a reply', 'error'); return; }
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const icons = { success: '✓', error: '✕', info: 'ℹ' };
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type]}</span>
+                <span class="toast-message">${msg}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function toggleAdminTheme() {
+            const body = document.body;
+            const icon = document.querySelector('.theme-toggle .icon');
+            const label = document.querySelector('.theme-toggle span:last-child');
             
-            // Open email client
-            const mailto = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(reply)}`;
-            window.location.href = mailto;
-            
-            // Mark as resolved
-            try {
-                await fetch(`${API}/support-email/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'resolved' }) });
-                closeEmailReply();
-                loadSupportEmails();
-                showToast('Reply opened in email client!', 'success');
-            } catch (e) { showToast('Error', 'error'); }
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                if (icon) icon.textContent = '🌙';
+                if (label) label.textContent = 'Dark Mode';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                if (icon) icon.textContent = '☀️';
+                if (label) label.textContent = 'Light Mode';
+            }
         }
 
-        document.getElementById('tenant-modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-        document.getElementById('password-modal').addEventListener('click', function(e) { if (e.target === this) closePasswordModal(); });
-        document.getElementById('chat-reply-modal').addEventListener('click', function(e) { if (e.target === this) closeChatReply(); });
-        document.getElementById('email-reply-modal').addEventListener('click', function(e) { if (e.target === this) closeEmailReply(); });
-
-        document.addEventListener('DOMContentLoaded', () => { loadTenants(); loadChatMessages(); loadSupportEmails(); });
+        function logout() {
+            sessionStorage.removeItem('tenanthub_user');
+            window.location.href = '/index.html';
+        }
     </script>
 </body>
 </html>

@@ -218,6 +218,13 @@ app.get('/api/support-email', (req, res) => {
     res.json(db.supportEmails || []);
 });
 
+// Get support emails for specific tenant
+app.get('/api/support-email/tenant/:tenantId', (req, res) => {
+    const db = getDB();
+    const emails = (db.supportEmails || []).filter(e => e.tenantId == req.params.tenantId);
+    res.json(emails);
+});
+
 app.post('/api/support-email', (req, res) => {
     const db = getDB();
     if (!db.supportEmails) db.supportEmails = [];
@@ -264,13 +271,176 @@ app.post('/api/entities/:tenantId/:type', (req, res) => {
     res.json(newEntity);
 });
 
+// ==================== ENHANCED FEATURES API ====================
+
+// Notifications
+app.get('/api/notifications/:tenantId', (req, res) => {
+    const db = getDB();
+    const notifications = db.notifications?.[req.params.tenantId] || [];
+    res.json(notifications);
+});
+
+app.post('/api/notifications/:tenantId', (req, res) => {
+    const db = getDB();
+    if (!db.notifications) db.notifications = {};
+    if (!db.notifications[req.params.tenantId]) db.notifications[req.params.tenantId] = [];
+    const notification = { id: Date.now(), ...req.body, timestamp: new Date().toISOString() };
+    db.notifications[req.params.tenantId].push(notification);
+    saveDB(db);
+    res.json(notification);
+});
+
+app.put('/api/notifications/:tenantId/:id', (req, res) => {
+    const db = getDB();
+    const notifications = db.notifications?.[req.params.tenantId] || [];
+    const idx = notifications.findIndex(n => n.id === parseInt(req.params.id));
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    notifications[idx] = { ...notifications[idx], ...req.body };
+    saveDB(db);
+    res.json(notifications[idx]);
+});
+
+// Calendar Events
+app.get('/api/calendar/:tenantId', (req, res) => {
+    const db = getDB();
+    const events = db.calendarEvents?.[req.params.tenantId] || [];
+    res.json(events);
+});
+
+app.post('/api/calendar/:tenantId', (req, res) => {
+    const db = getDB();
+    if (!db.calendarEvents) db.calendarEvents = {};
+    if (!db.calendarEvents[req.params.tenantId]) db.calendarEvents[req.params.tenantId] = [];
+    const event = { id: Date.now(), ...req.body, created: new Date().toISOString() };
+    db.calendarEvents[req.params.tenantId].push(event);
+    saveDB(db);
+    res.json(event);
+});
+
+app.delete('/api/calendar/:tenantId/:id', (req, res) => {
+    const db = getDB();
+    const events = db.calendarEvents?.[req.params.tenantId] || [];
+    const idx = events.findIndex(e => e.id === parseInt(req.params.id));
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    events.splice(idx, 1);
+    saveDB(db);
+    res.json({ success: true });
+});
+
+// Files
+app.get('/api/files/:tenantId', (req, res) => {
+    const db = getDB();
+    const files = db.files?.[req.params.tenantId] || [];
+    res.json(files);
+});
+
+app.post('/api/files/:tenantId', (req, res) => {
+    const db = getDB();
+    if (!db.files) db.files = {};
+    if (!db.files[req.params.tenantId]) db.files[req.params.tenantId] = [];
+    const file = { id: Date.now(), ...req.body, uploaded: new Date().toISOString() };
+    db.files[req.params.tenantId].push(file);
+    saveDB(db);
+    res.json(file);
+});
+
+app.delete('/api/files/:tenantId/:id', (req, res) => {
+    const db = getDB();
+    const files = db.files?.[req.params.tenantId] || [];
+    const idx = files.findIndex(f => f.id === parseInt(req.params.id));
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    files.splice(idx, 1);
+    saveDB(db);
+    res.json({ success: true });
+});
+
+// Activity Logs
+app.get('/api/activities/:tenantId', (req, res) => {
+    const db = getDB();
+    const activities = db.activities?.[req.params.tenantId] || [];
+    res.json(activities.slice(0, 50)); // Return last 50 activities
+});
+
+app.post('/api/activities/:tenantId', (req, res) => {
+    const db = getDB();
+    if (!db.activities) db.activities = {};
+    if (!db.activities[req.params.tenantId]) db.activities[req.params.tenantId] = [];
+    const activity = { id: Date.now(), ...req.body, timestamp: new Date().toISOString() };
+    db.activities[req.params.tenantId].unshift(activity);
+    // Keep only last 100 activities
+    db.activities[req.params.tenantId].splice(100);
+    saveDB(db);
+    res.json(activity);
+});
+
+// Reports
+app.get('/api/reports/:tenantId/:type', (req, res) => {
+    const db = getDB();
+    const entities = db.entities[req.params.tenantId] || { customers: [], deals: [], appointments: [], tasks: [] };
+    const type = req.params.type;
+    
+    let report = {
+        type,
+        generated: new Date().toISOString(),
+        data: {}
+    };
+    
+    switch(type) {
+        case 'revenue':
+            report.data = {
+                total: entities.deals?.length * 100 || 0,
+                deals: entities.deals?.length || 0,
+                average: entities.deals?.length > 0 ? (entities.deals.length * 100) / entities.deals.length : 0
+            };
+            break;
+        case 'customers':
+            report.data = {
+                total: entities.customers?.length || 0,
+                newThisMonth: entities.customers?.filter(c => {
+                    const created = new Date(c.created);
+                    const now = new Date();
+                    return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+                }).length || 0
+            };
+            break;
+        case 'appointments':
+            report.data = {
+                total: entities.appointments?.length || 0,
+                upcoming: entities.appointments?.filter(a => new Date(a.date) > new Date()).length || 0,
+                completed: entities.appointments?.filter(a => a.status === 'completed').length || 0
+            };
+            break;
+        case 'tasks':
+            report.data = {
+                total: entities.tasks?.length || 0,
+                pending: entities.tasks?.filter(t => t.status !== 'completed').length || 0,
+                completed: entities.tasks?.filter(t => t.status === 'completed').length || 0
+            };
+            break;
+        default:
+            report.data = { entities };
+    }
+    
+    res.json(report);
+});
+
 // Serve tenant login page
 app.get('/login/:slug', (req, res) => {
     res.sendFile(path.join(__dirname, 'tenant-login.html'));
 });
 
+// Serve tenant dashboard
+app.get('/tenant.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'tenant.html'));
+});
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve admin dashboard
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.listen(PORT, () => {

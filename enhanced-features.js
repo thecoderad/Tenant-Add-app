@@ -1,555 +1,782 @@
-// ═══════════════════════════════════════════════════════════════
-// TenantHub - Enhanced JavaScript Functionality
-// Advanced features and utilities for the platform
-// ═══════════════════════════════════════════════════════════════
+/**
+ * TenantHub - Enhanced Tenant Features Module
+ * Includes: Notifications, Calendar, Reports, Settings, Files, Dark Mode
+ */
 
-// Enhanced database operations with validation
-const enhancedDB = {
-    ...db,
-
-    // Validate tenant data before creation
-    validateTenant(tenant) {
-        const errors = [];
-
-        if (!tenant.name || tenant.name.length < 2) {
-            errors.push('Company name must be at least 2 characters');
-        }
-
-        if (!tenant.domain || !this.isValidDomain(tenant.domain)) {
-            errors.push('Valid domain is required (e.g., company.com)');
-        }
-
-        if (!tenant.email || !this.isValidEmail(tenant.email)) {
-            errors.push('Valid email is required');
-        }
-
-        if (!tenant.password || tenant.password.length < 6) {
-            errors.push('Password must be at least 6 characters');
-        }
-
-        return { isValid: errors.length === 0, errors };
-    },
-
-    // Domain validation
-    isValidDomain(domain) {
-        const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
-        return domainRegex.test(domain);
-    },
-
-    // Email validation
-    isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    },
-
-    // Enhanced tenant creation with validation
-    createTenant(tenant) {
-        const validation = this.validateTenant(tenant);
-
-        if (!validation.isValid) {
-            throw new Error(validation.errors.join(', '));
-        }
-
-        // Check for duplicate domain or email
-        const existingTenants = this.getAll('tenants');
-        if (existingTenants.some(t => t.domain === tenant.domain)) {
-            throw new Error('Domain already exists');
-        }
-        if (existingTenants.some(t => t.email === tenant.email)) {
-            throw new Error('Email already exists');
-        }
-
-        return this.create('tenants', tenant);
-    },
-
-    // Bulk operations
-    bulkUpdate(collection, updatesArray) {
-        const items = this.getAll(collection);
-        updatesArray.forEach(update => {
-            const index = items.findIndex(item => item.id === update.id);
-            if (index !== -1) {
-                items[index] = { ...items[index], ...update.updates };
-            }
-        });
-        localStorage.setItem(DB_KEYS[collection.toUpperCase()], JSON.stringify(items));
-        return items;
-    },
-
-    // Export data
-    exportCollection(collection) {
-        const data = this.getAll(collection);
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        return URL.createObjectURL(blob);
-    },
-
-    // Import data
-    importCollection(collection, data) {
-        localStorage.setItem(DB_KEYS[collection.toUpperCase()], JSON.stringify(data));
-    }
-};
-
-// Advanced analytics tracking
-const advancedAnalytics = {
-    ...analytics,
-
-    // Track detailed user interactions
-    trackInteraction(tenantId, action, details = {}) {
-        const baseData = this.get(tenantId);
-        const interaction = {
-            timestamp: new Date().toISOString(),
-            action,
-            details,
-            userAgent: navigator.userAgent,
-            page: window.location.pathname
+class EnhancedTenantFeatures {
+    constructor(options = {}) {
+        this.tenantId = options.tenantId;
+        this.api = '/api';
+        this.currentMonth = new Date();
+        this.notifications = [];
+        this.files = [];
+        this.calendarEvents = [];
+        this.settings = {
+            emailNotifications: true,
+            pushNotifications: true,
+            darkMode: false,
+            language: 'en',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
         };
-
-        // Store interactions
-        const interactionsKey = `${DB_KEYS.ANALYTICS}_interactions`;
-        const interactions = JSON.parse(localStorage.getItem(interactionsKey) || '{}');
-
-        if (!interactions[tenantId]) {
-            interactions[tenantId] = [];
-        }
-
-        interactions[tenantId].push(interaction);
-
-        // Keep only last 100 interactions per tenant
-        if (interactions[tenantId].length > 100) {
-            interactions[tenantId] = interactions[tenantId].slice(-100);
-        }
-
-        localStorage.setItem(interactionsKey, JSON.stringify(interactions));
-
-        // Call base analytics
-        this.track(tenantId, action);
-    },
-
-    // Get interaction history
-    getInteractions(tenantId) {
-        const interactionsKey = `${DB_KEYS.ANALYTICS}_interactions`;
-        const interactions = JSON.parse(localStorage.getItem(interactionsKey) || '{}');
-        return interactions[tenantId] || [];
-    },
-
-    // Generate analytics report
-    generateReport(tenantId, days = 30) {
-        const interactions = this.getInteractions(tenantId);
-        const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-
-        const filteredInteractions = interactions.filter(
-            interaction => new Date(interaction.timestamp) > cutoffDate
-        );
-
-        const report = {
-            totalInteractions: filteredInteractions.length,
-            dailyActivity: {},
-            popularActions: {},
-            peakHours: {}
-        };
-
-        filteredInteractions.forEach(interaction => {
-            const date = interaction.timestamp.split('T')[0];
-            const hour = new Date(interaction.timestamp).getHours();
-
-            report.dailyActivity[date] = (report.dailyActivity[date] || 0) + 1;
-            report.popularActions[interaction.action] = (report.popularActions[interaction.action] || 0) + 1;
-            report.peakHours[hour] = (report.peakHours[hour] || 0) + 1;
-        });
-
-        return report;
+        this.init();
     }
-};
 
-// Enhanced chat system
-const enhancedChat = {
-    ...chat,
+    init() {
+        this.loadSettings();
+        this.loadNotifications();
+        this.loadCalendarEvents();
+        this.loadFiles();
+        this.setupEventListeners();
+        this.applyTheme();
+    }
 
-    // Rich message types
-    sendRichMessage(fromId, toId, content, type = 'text', metadata = {}) {
-        const message = {
+    // ==================== THEME MANAGEMENT ====================
+    
+    toggleTheme() {
+        const body = document.body;
+        const isLight = body.getAttribute('data-theme') === 'light';
+        
+        if (isLight) {
+            body.removeAttribute('data-theme');
+            this.settings.darkMode = false;
+            this.updateThemeButtons('dark');
+        } else {
+            body.setAttribute('data-theme', 'light');
+            this.settings.darkMode = true;
+            this.updateThemeButtons('light');
+        }
+        
+        this.saveSettings();
+        this.showToast(`Switched to ${isLight ? 'dark' : 'light'} mode`, 'success');
+    }
+
+    updateThemeButtons(mode) {
+        const icons = document.querySelectorAll('.theme-toggle .icon');
+        const labels = document.querySelectorAll('.theme-toggle span:last-child');
+        
+        icons.forEach(icon => {
+            icon.textContent = mode === 'light' ? '☀️' : '🌙';
+        });
+        
+        labels.forEach(label => {
+            label.textContent = mode === 'light' ? 'Light Mode' : 'Dark Mode';
+        });
+    }
+
+    applyTheme() {
+        if (this.settings.darkMode) {
+            document.body.setAttribute('data-theme', 'light');
+            this.updateThemeButtons('light');
+        } else {
+            document.body.removeAttribute('data-theme');
+            this.updateThemeButtons('dark');
+        }
+    }
+
+    // ==================== NOTIFICATION SYSTEM ====================
+    
+    loadNotifications() {
+        // Load from localStorage or API
+        const stored = localStorage.getItem(`notifications_${this.tenantId}`);
+        if (stored) {
+            this.notifications = JSON.parse(stored);
+        } else {
+            // Generate sample notifications
+            this.notifications = [
+                {
+                    id: 1,
+                    type: 'info',
+                    message: 'Welcome to TenantHub! Your account is now active.',
+                    time: new Date(Date.now() - 3600000).toISOString(),
+                    read: false
+                },
+                {
+                    id: 2,
+                    type: 'success',
+                    message: 'Your profile has been updated successfully.',
+                    time: new Date(Date.now() - 7200000).toISOString(),
+                    read: false
+                },
+                {
+                    id: 3,
+                    type: 'warning',
+                    message: 'You have 3 appointments scheduled for tomorrow.',
+                    time: new Date(Date.now() - 86400000).toISOString(),
+                    read: true
+                }
+            ];
+            this.saveNotifications();
+        }
+        this.renderNotifications();
+    }
+
+    saveNotifications() {
+        localStorage.setItem(`notifications_${this.tenantId}`, JSON.stringify(this.notifications));
+    }
+
+    addNotification(message, type = 'info') {
+        const notification = {
             id: Date.now(),
-            fromId,
-            toId,
-            content,
             type,
-            timestamp: new Date().toISOString(),
-            read: false,
-            metadata
+            message,
+            time: new Date().toISOString(),
+            read: false
         };
-
-        return enhancedDB.create('messages', message);
-    },
-
-    // File sharing capability
-    sendFile(fromId, toId, file, description = '') {
-        const fileData = {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            url: URL.createObjectURL(file)
-        };
-
-        return this.sendRichMessage(fromId, toId, description, 'file', fileData);
-    },
-
-    // Message reactions
-    addReaction(messageId, userId, reaction) {
-        const message = enhancedDB.get('messages', messageId);
-        if (!message.metadata.reactions) {
-            message.metadata.reactions = {};
-        }
-        if (!message.metadata.reactions[userId]) {
-            message.metadata.reactions[userId] = [];
-        }
-        if (!message.metadata.reactions[userId].includes(reaction)) {
-            message.metadata.reactions[userId].push(reaction);
-        }
-        return enhancedDB.update('messages', messageId, { metadata: message.metadata });
-    },
-
-    // Threaded conversations
-    createThread(parentMessageId, fromId, toId, content) {
-        const threadMessage = {
-            content,
-            fromId,
-            toId,
-            timestamp: new Date().toISOString(),
-            parentId: parentMessageId,
-            type: 'thread-reply'
-        };
-
-        return enhancedDB.create('messages', threadMessage);
+        this.notifications.unshift(notification);
+        this.saveNotifications();
+        this.renderNotifications();
+        this.showBrowserNotification(message, type);
     }
-};
 
-// UI Enhancement Utilities
-const UIEnhancer = {
-    // Create animated notifications
-    notify(message, type = 'info', duration = 3000) {
-        const notification = document.createElement('div');
-        notification.className = `enhanced-notification notification-${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="notification-icon fas fa-${this.getIconForType(type)}"></i>
-                <span class="notification-message">${message}</span>
-                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
-            </div>
-        `;
+    showBrowserNotification(message, type) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('TenantHub', {
+                body: message,
+                icon: '/favicon.ico',
+                badge: '/favicon.ico'
+            });
+        }
+    }
 
-        // Add to DOM
-        document.body.appendChild(notification);
+    requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }
 
-        // Animate in
-        setTimeout(() => {
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateY(0)';
-        }, 10);
+    markNotificationAsRead(id) {
+        const notification = this.notifications.find(n => n.id === id);
+        if (notification) {
+            notification.read = true;
+            this.saveNotifications();
+            this.renderNotifications();
+        }
+    }
 
-        // Auto remove
-        if (duration > 0) {
-            setTimeout(() => {
-                this.fadeOut(notification);
-            }, duration);
+    markAllAsRead() {
+        this.notifications.forEach(n => n.read = true);
+        this.saveNotifications();
+        this.renderNotifications();
+    }
+
+    clearAllNotifications() {
+        this.notifications = [];
+        this.saveNotifications();
+        this.renderNotifications();
+    }
+
+    getUnreadCount() {
+        return this.notifications.filter(n => !n.read).length;
+    }
+
+    renderNotifications() {
+        const container = document.getElementById('notification-list');
+        if (!container) return;
+
+        const unreadCount = this.getUnreadCount();
+        const countBadge = document.getElementById('notification-count');
+        if (countBadge) {
+            countBadge.textContent = unreadCount;
+            countBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
         }
 
-        return notification;
-    },
+        if (this.notifications.length === 0) {
+            container.innerHTML = `
+                <div class="notification-empty">
+                    <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 12px; opacity: 0.3;"></i>
+                    <p>No notifications yet</p>
+                </div>
+            `;
+            return;
+        }
 
-    getIconForType(type) {
+        container.innerHTML = this.notifications.map(n => `
+            <div class="notification-item ${n.read ? 'read' : 'unread'}" onclick="tenantFeatures.markNotificationAsRead(${n.id})">
+                <div class="notification-icon ${n.type}">
+                    <i class="fas fa-${this.getNotificationIcon(n.type)}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-message">${this.escapeHtml(n.message)}</div>
+                    <div class="notification-time">${this.formatTime(n.time)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    getNotificationIcon(type) {
         const icons = {
             info: 'info-circle',
             success: 'check-circle',
             warning: 'exclamation-triangle',
-            error: 'exclamation-circle'
+            danger: 'times-circle'
         };
-        return icons[type] || 'info-circle';
-    },
+        return icons[type] || 'bell';
+    }
 
-    fadeOut(element) {
-        element.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(-20px)';
-        setTimeout(() => element.remove(), 300);
-    },
-
-    // Loading states
-    showLoading(target = document.body) {
-        const loader = document.createElement('div');
-        loader.className = 'enhanced-loader';
-        loader.innerHTML = `
-            <div class="loader-content">
-                <div class="spinner"></div>
-                <span>Loading...</span>
-            </div>
-        `;
-
-        if (target === document.body) {
-            loader.style.position = 'fixed';
-            loader.style.top = '0';
-            loader.style.left = '0';
-            loader.style.width = '100%';
-            loader.style.height = '100%';
-            loader.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-            loader.style.display = 'flex';
-            loader.style.alignItems = 'center';
-            loader.style.justifyContent = 'center';
-            loader.style.zIndex = '9999';
+    toggleNotificationCenter() {
+        const center = document.getElementById('notification-center');
+        if (center) {
+            center.classList.toggle('active');
         }
+    }
 
-        target.appendChild(loader);
-        return loader;
-    },
-
-    hideLoading(loader) {
-        if (loader && loader.parentNode) {
-            loader.remove();
-        }
-    },
-
-    // Modal enhancements
-    showModal(title, content, buttons = []) {
-        const modal = document.createElement('div');
-        modal.className = 'enhanced-modal-overlay';
-        modal.innerHTML = `
-            <div class="enhanced-modal">
-                <div class="modal-header">
-                    <h3>${title}</h3>
-                    <button class="modal-close" onclick="this.closest('.enhanced-modal-overlay').remove()">&times;</button>
-                </div>
-                <div class="modal-body">${content}</div>
-                <div class="modal-footer">
-                    ${buttons.map(btn => `
-                        <button class="btn ${btn.className || 'btn-outline'}"
-                                onclick="${btn.onclick || ''}; this.closest('.enhanced-modal-overlay').remove();">
-                            ${btn.text}
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-        return modal;
-    },
-
-    // Form validation utilities
-    validateForm(formElement) {
-        const inputs = formElement.querySelectorAll('input[required], select[required], textarea[required]');
-        let isValid = true;
-
-        inputs.forEach(input => {
-            if (!input.value.trim()) {
-                this.highlightError(input);
-                isValid = false;
-            } else {
-                this.clearError(input);
-            }
-
-            // Check for custom validation
-            if (input.hasAttribute('data-validate')) {
-                const validator = input.getAttribute('data-validate');
-                if (!this.runValidator(input.value, validator)) {
-                    this.highlightError(input);
-                    isValid = false;
-                } else {
-                    this.clearError(input);
+    // ==================== CALENDAR MODULE ====================
+    
+    loadCalendarEvents() {
+        const stored = localStorage.getItem(`calendar_${this.tenantId}`);
+        if (stored) {
+            this.calendarEvents = JSON.parse(stored);
+        } else {
+            // Sample events
+            this.calendarEvents = [
+                {
+                    id: 1,
+                    title: 'Team Meeting',
+                    date: new Date().toISOString().split('T')[0],
+                    type: 'meeting'
+                },
+                {
+                    id: 2,
+                    title: 'Project Deadline',
+                    date: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+                    type: 'deadline'
+                },
+                {
+                    id: 3,
+                    title: 'Client Appointment',
+                    date: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
+                    type: 'appointment'
                 }
-            }
-        });
-
-        return isValid;
-    },
-
-    highlightError(element) {
-        element.style.borderColor = 'var(--neon-red)';
-        element.style.boxShadow = '0 0 10px rgba(255, 56, 96, 0.5)';
-
-        // Add error message if not already present
-        if (!element.nextElementSibling || !element.nextElementSibling.classList.contains('form-error')) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'form-error';
-            errorDiv.textContent = 'This field is required';
-            element.parentNode.insertBefore(errorDiv, element.nextSibling);
+            ];
+            this.saveCalendarEvents();
         }
-    },
+        this.renderCalendar();
+    }
 
-    clearError(element) {
-        element.style.borderColor = 'var(--border-color)';
-        element.style.boxShadow = 'none';
+    saveCalendarEvents() {
+        localStorage.setItem(`calendar_${this.tenantId}`, JSON.stringify(this.calendarEvents));
+    }
 
-        // Remove error message
-        const error = element.nextElementSibling;
-        if (error && error.classList.contains('form-error')) {
-            error.remove();
-        }
-    },
-
-    runValidator(value, validator) {
-        // Built-in validators
-        const validators = {
-            email: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
-            phone: /^\+?[\d\s\-\(\)]{10,}$/,
-            url: /^https?:\/\/.+/
+    addCalendarEvent(title, date, type = 'meeting') {
+        const event = {
+            id: Date.now(),
+            title,
+            date,
+            type
         };
+        this.calendarEvents.push(event);
+        this.saveCalendarEvents();
+        this.renderCalendar();
+        this.addNotification(`Event added: ${title}`, 'info');
+    }
 
-        if (validators[validator]) {
-            return validators[validator].test(value);
+    renderCalendar() {
+        const grid = document.getElementById('calendar-days');
+        if (!grid) return;
+
+        const year = this.currentMonth.getFullYear();
+        const month = this.currentMonth.getMonth();
+        
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const prevLastDay = new Date(year, month, 0);
+        
+        const startDay = firstDay.getDay();
+        const totalDays = lastDay.getDate();
+        
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+        
+        const monthTitle = document.getElementById('calendar-month-year');
+        if (monthTitle) {
+            monthTitle.textContent = `${monthNames[month]} ${year}`;
         }
 
-        // Custom regex
-        try {
-            const regex = new RegExp(validator);
-            return regex.test(value);
-        } catch (e) {
-            return true; // If invalid regex, don't block submission
+        let html = '';
+        
+        // Previous month days
+        for (let i = startDay - 1; i >= 0; i--) {
+            const day = prevLastDay.getDate() - i;
+            html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
         }
-    },
-
-    // Animation utilities
-    animateElement(element, animationClass) {
-        element.classList.add(animationClass);
-        setTimeout(() => {
-            element.classList.remove(animationClass);
-        }, 1000);
-    },
-
-    // Data export/import
-    exportData() {
-        const data = {};
-        for (const [key, value] of Object.entries(DB_KEYS)) {
-            data[value] = JSON.parse(localStorage.getItem(value) || '[]');
+        
+        // Current month days
+        const today = new Date().toISOString().split('T')[0];
+        for (let day = 1; day <= totalDays; day++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isToday = dateStr === today;
+            const dayEvents = this.calendarEvents.filter(e => e.date === dateStr);
+            
+            html += `
+                <div class="calendar-day ${isToday ? 'today' : ''}" onclick="tenantFeatures.onDayClick('${dateStr}')">
+                    <div class="calendar-day-number">${day}</div>
+                    <div class="calendar-day-events">
+                        ${dayEvents.slice(0, 3).map(e => `
+                            <div class="calendar-event ${e.type}">${this.escapeHtml(e.title)}</div>
+                        `).join('')}
+                        ${dayEvents.length > 3 ? `<div class="calendar-event">+${dayEvents.length - 3} more</div>` : ''}
+                    </div>
+                </div>
+            `;
         }
-        return JSON.stringify(data, null, 2);
-    },
+        
+        // Next month days
+        const endDay = new Date(year, month + 1, 6).getDay();
+        const remainingDays = 42 - (startDay + totalDays);
+        for (let day = 1; day <= remainingDays; day++) {
+            html += `<div class="calendar-day other-month"><div class="calendar-day-number">${day}</div></div>`;
+        }
+        
+        grid.innerHTML = html;
+    }
 
-    importData(jsonString) {
-        try {
-            const data = JSON.parse(jsonString);
-            for (const [key, value] of Object.entries(data)) {
-                localStorage.setItem(key, JSON.stringify(value));
-            }
-            return true;
-        } catch (e) {
-            console.error('Import failed:', e);
-            return false;
+    onDayClick(date) {
+        const dayEvents = this.calendarEvents.filter(e => e.date === date);
+        const title = prompt(`Add event for ${date}:`);
+        if (title) {
+            const type = prompt('Event type (meeting, deadline, appointment):', 'meeting');
+            this.addCalendarEvent(title, date, type || 'meeting');
         }
     }
-};
 
-// Security enhancements
-const SecurityManager = {
-    // Password strength checker
-    checkPasswordStrength(password) {
-        let score = 0;
-        let feedback = [];
+    navigateCalendar(direction) {
+        this.currentMonth.setMonth(this.currentMonth.getMonth() + direction);
+        this.renderCalendar();
+    }
 
-        if (password.length >= 8) score += 1;
-        else feedback.push('At least 8 characters');
-
-        if (/[A-Z]/.test(password)) score += 1;
-        else feedback.push('Include uppercase letters');
-
-        if (/[a-z]/.test(password)) score += 1;
-        else feedback.push('Include lowercase letters');
-
-        if (/[0-9]/.test(password)) score += 1;
-        else feedback.push('Include numbers');
-
-        if (/[^A-Za-z0-9]/.test(password)) score += 1;
-        else feedback.push('Include special characters');
-
-        const strengthLevels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-        const strength = strengthLevels[score] || 'Very Strong';
-
+    // ==================== REPORTS MODULE ====================
+    
+    generateReport(type) {
+        const stats = {
+            revenue: Math.floor(Math.random() * 10000) + 5000,
+            customers: Math.floor(Math.random() * 100) + 20,
+            appointments: Math.floor(Math.random() * 50) + 10,
+            tasks: Math.floor(Math.random() * 30) + 5
+        };
+        
+        const change = Math.random() > 0.5 ? 'positive' : 'negative';
+        const changePercent = Math.floor(Math.random() * 20) + 5;
+        
         return {
-            score,
-            strength,
-            feedback: feedback.length > 0 ? feedback : null
+            value: stats[type] || 0,
+            change: change,
+            changePercent: changePercent
         };
-    },
+    }
 
-    // Session management
-    createSession(userId, role) {
-        const sessionId = this.generateSessionId();
-        const session = {
-            id: sessionId,
-            userId,
-            role,
-            createdAt: new Date().toISOString(),
-            expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString() // 30 min default
+    renderReports() {
+        const reports = [
+            { id: 'revenue', title: 'Total Revenue', icon: 'fa-dollar-sign', class: 'revenue' },
+            { id: 'customers', title: 'Active Customers', icon: 'fa-users', class: 'customers' },
+            { id: 'appointments', title: 'Appointments', icon: 'fa-calendar-check', class: 'appointments' },
+            { id: 'tasks', title: 'Pending Tasks', icon: 'fa-tasks', class: 'tasks' }
+        ];
+
+        reports.forEach(report => {
+            const data = this.generateReport(report.id);
+            const element = document.getElementById(`report-${report.id}`);
+            if (element) {
+                element.innerHTML = `
+                    <div class="report-header">
+                        <div class="report-icon ${report.class}">
+                            <i class="fas ${report.icon}"></i>
+                        </div>
+                        <div class="report-title">${report.title}</div>
+                    </div>
+                    <div class="report-value">$${data.value.toLocaleString()}</div>
+                    <div class="report-change ${data.change}">
+                        <i class="fas fa-${data.change === 'positive' ? 'arrow-up' : 'arrow-down'}"></i>
+                        <span>${data.changePercent}% from last month</span>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn btn-sm btn-primary" onclick="tenantFeatures.exportReport('${report.id}')">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="tenantFeatures.viewReportDetails('${report.id}')">
+                            <i class="fas fa-eye"></i> Details
+                        </button>
+                    </div>
+                `;
+            }
+        });
+    }
+
+    exportReport(type) {
+        const data = this.generateReport(type);
+        const csv = `Report Type,Value,Change\n${type},${data.value},${data.changePercent}%`;
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${type}-report-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.showToast('Report exported successfully', 'success');
+    }
+
+    viewReportDetails(type) {
+        this.showToast(`Viewing details for ${type} report`, 'info');
+    }
+
+    // ==================== FILE MANAGER ====================
+    
+    loadFiles() {
+        const stored = localStorage.getItem(`files_${this.tenantId}`);
+        if (stored) {
+            this.files = JSON.parse(stored);
+        } else {
+            this.files = [];
+            this.saveFiles();
+        }
+        this.renderFiles();
+    }
+
+    saveFiles() {
+        localStorage.setItem(`files_${this.tenantId}`, JSON.stringify(this.files));
+    }
+
+    uploadFile(file) {
+        const fileData = {
+            id: Date.now(),
+            name: file.name,
+            size: this.formatFileSize(file.size),
+            type: this.getFileType(file.name),
+            date: new Date().toISOString(),
+            url: URL.createObjectURL(file)
+        };
+        this.files.push(fileData);
+        this.saveFiles();
+        this.renderFiles();
+        this.addNotification(`File uploaded: ${file.name}`, 'success');
+    }
+
+    deleteFile(id) {
+        const index = this.files.findIndex(f => f.id === id);
+        if (index > -1) {
+            this.files.splice(index, 1);
+            this.saveFiles();
+            this.renderFiles();
+            this.showToast('File deleted', 'success');
+        }
+    }
+
+    getFileType(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const types = {
+            pdf: 'pdf',
+            jpg: 'image', jpeg: 'image', png: 'image', gif: 'image',
+            doc: 'document', docx: 'document', txt: 'document',
+            xls: 'spreadsheet', xlsx: 'spreadsheet', csv: 'spreadsheet'
+        };
+        return types[ext] || 'file';
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    renderFiles() {
+        const container = document.getElementById('file-list');
+        if (!container) return;
+
+        if (this.files.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="empty-state-title">No files yet</div>
+                    <div class="empty-state-desc">Upload your first file to get started</div>
+                </div>
+            `;
+            return;
+        }
+
+        const icons = {
+            pdf: 'fa-file-pdf',
+            image: 'fa-file-image',
+            document: 'fa-file-word',
+            spreadsheet: 'fa-file-excel',
+            file: 'fa-file'
         };
 
-        sessionStorage.setItem('current_session', JSON.stringify(session));
-        return session;
-    },
+        container.innerHTML = this.files.map(f => `
+            <div class="file-item">
+                <div class="file-icon ${f.type}">
+                    <i class="fas ${icons[f.type] || icons.file}"></i>
+                </div>
+                <div class="file-info">
+                    <div class="file-name">${this.escapeHtml(f.name)}</div>
+                    <div class="file-size">${f.size} • ${this.formatTime(f.date)}</div>
+                </div>
+                <div class="file-menu">
+                    <button class="file-menu-btn" onclick="tenantFeatures.downloadFile(${f.id})" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="file-menu-btn" onclick="tenantFeatures.deleteFile(${f.id})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
 
-    validateSession() {
-        const session = JSON.parse(sessionStorage.getItem('current_session') || 'null');
+    downloadFile(id) {
+        const file = this.files.find(f => f.id === id);
+        if (file && file.url) {
+            const a = document.createElement('a');
+            a.href = file.url;
+            a.download = file.name;
+            a.click();
+            this.showToast('Download started', 'success');
+        }
+    }
 
-        if (!session) return false;
+    // ==================== SETTINGS MODULE ====================
+    
+    loadSettings() {
+        const stored = localStorage.getItem(`settings_${this.tenantId}`);
+        if (stored) {
+            this.settings = { ...this.settings, ...JSON.parse(stored) };
+        }
+        this.renderSettings();
+    }
 
+    saveSettings() {
+        localStorage.setItem(`settings_${this.tenantId}`, JSON.stringify(this.settings));
+    }
+
+    updateSetting(key, value) {
+        this.settings[key] = value;
+        this.saveSettings();
+        
+        if (key === 'darkMode') {
+            this.toggleTheme();
+        }
+        
+        this.showToast('Settings saved', 'success');
+    }
+
+    renderSettings() {
+        // Render toggle states
+        const toggles = {
+            emailNotifications: this.settings.emailNotifications,
+            pushNotifications: this.settings.pushNotifications,
+            darkMode: this.settings.darkMode
+        };
+
+        Object.entries(toggles).forEach(([key, value]) => {
+            const toggle = document.getElementById(`toggle-${key}`);
+            if (toggle) {
+                toggle.classList.toggle('active', value);
+            }
+        });
+
+        // Render other settings
+        const langSelect = document.getElementById('setting-language');
+        if (langSelect) langSelect.value = this.settings.language;
+    }
+
+    // ==================== QUICK ACTIONS ====================
+    
+    quickAddCustomer() {
+        const name = prompt('Customer name:');
+        if (name) {
+            this.addNotification(`Customer "${name}" added`, 'success');
+            this.showToast('Customer added successfully', 'success');
+        }
+    }
+
+    quickAddAppointment() {
+        const title = prompt('Appointment title:');
+        if (title) {
+            const date = prompt('Date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+            if (date) {
+                this.addCalendarEvent(title, date, 'appointment');
+                this.showToast('Appointment scheduled', 'success');
+            }
+        }
+    }
+
+    quickCreateTask() {
+        const task = prompt('Task description:');
+        if (task) {
+            this.addNotification(`Task created: ${task}`, 'info');
+            this.showToast('Task created', 'success');
+        }
+    }
+
+    quickSendInvoice() {
+        const customer = prompt('Customer name:');
+        if (customer) {
+            const amount = prompt('Amount:');
+            if (amount) {
+                this.addNotification(`Invoice sent to ${customer}`, 'success');
+                this.showToast('Invoice sent', 'success');
+            }
+        }
+    }
+
+    // ==================== ACTIVITY TRACKING ====================
+    
+    logActivity(title, type = 'info') {
+        const activities = JSON.parse(localStorage.getItem(`activities_${this.tenantId}`) || '[]');
+        activities.unshift({
+            id: Date.now(),
+            title,
+            type,
+            time: new Date().toISOString()
+        });
+        
+        // Keep only last 50 activities
+        activities.splice(50);
+        
+        localStorage.setItem(`activities_${this.tenantId}`, JSON.stringify(activities));
+        this.renderActivityTimeline();
+    }
+
+    renderActivityTimeline() {
+        const container = document.getElementById('activity-timeline');
+        if (!container) return;
+
+        const activities = JSON.parse(localStorage.getItem(`activities_${this.tenantId}`) || '[]');
+        
+        if (activities.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-title">No recent activity</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = activities.map(a => `
+            <div class="activity-item ${a.type}">
+                <div class="activity-content">
+                    <div class="activity-title">${this.escapeHtml(a.title)}</div>
+                    <div class="activity-time">${this.formatTime(a.time)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ==================== UTILITY FUNCTIONS ====================
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    formatTime(isoString) {
+        const date = new Date(isoString);
         const now = new Date();
-        const expiresAt = new Date(session.expiresAt);
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
 
-        if (now > expiresAt) {
-            this.destroySession();
-            return false;
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        
+        return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const icons = { success: '✓', error: '✕', info: 'ℹ' };
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <span class="toast-icon">${icons[type]}</span>
+            <div class="toast-content">
+                <div class="toast-message">${this.escapeHtml(message)}</div>
+            </div>
+        `;
+        container.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    setupEventListeners() {
+        // File upload
+        const fileInput = document.getElementById('file-upload-input');
+        const fileDrop = document.getElementById('file-drop-zone');
+        
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    this.uploadFile(e.target.files[0]);
+                }
+            });
         }
 
-        return session;
-    },
-
-    destroySession() {
-        sessionStorage.removeItem('current_session');
-        localStorage.removeItem('current_tenant_id');
-    },
-
-    generateSessionId() {
-        return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-};
-
-// Initialize on load
-document.addEventListener('DOMContentLoaded', () => {
-    // Enhance all forms with validation
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', (e) => {
-            if (!UIEnhancer.validateForm(form)) {
+        if (fileDrop) {
+            fileDrop.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                UIEnhancer.notify('Please fix the highlighted fields', 'error');
-            }
-        });
-    });
+                fileDrop.style.borderColor = 'var(--primary)';
+            });
 
-    // Add global event listeners
-    document.addEventListener('keydown', (e) => {
-        // Ctrl/Cmd + S to save
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-            e.preventDefault();
-            // Trigger save action if on a form
-            const activeForm = document.activeElement.closest('form');
-            if (activeForm) {
-                activeForm.dispatchEvent(new Event('submit'));
-            }
+            fileDrop.addEventListener('dragleave', () => {
+                fileDrop.style.borderColor = 'var(--border-color)';
+            });
+
+            fileDrop.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileDrop.style.borderColor = 'var(--border-color)';
+                if (e.dataTransfer.files.length > 0) {
+                    this.uploadFile(e.dataTransfer.files[0]);
+                }
+            });
+        }
+
+        // Settings toggles
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const setting = toggle.id.replace('toggle-', '');
+                this.updateSetting(setting, !this.settings[setting]);
+            });
+        });
+
+        // Request notification permission on load
+        this.requestNotificationPermission();
+    }
+}
+
+// Initialize global instance
+let tenantFeatures;
+
+// Auto-initialize when DOM is ready
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        const tenant = JSON.parse(sessionStorage.getItem('current_tenant') || '{}');
+        if (tenant.id) {
+            tenantFeatures = new EnhancedTenantFeatures({ tenantId: tenant.id });
+            
+            // Log initial activity
+            tenantFeatures.logActivity('Dashboard accessed', 'info');
         }
     });
+}
 
-    // Performance monitoring
-    if ('performance' in window) {
-        window.addEventListener('load', () => {
-            const perfData = performance.getEntriesByType('navigation')[0];
-            console.log('Page load time:', perfData.loadEventEnd - perfData.loadEventStart);
-        });
-    }
-});
-
-// Export for modules
+// Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        enhancedDB,
-        advancedAnalytics,
-        enhancedChat,
-        UIEnhancer,
-        SecurityManager
-    };
+    module.exports = EnhancedTenantFeatures;
 }

@@ -212,8 +212,8 @@
     z-index: 1;
 }
 
-.login-header h1 {
-    font-size: 2rem;
+.login-header h2 {
+    font-size: 1.75rem;
     margin-bottom: var(--spacing-sm);
     color: var(--text-primary);
 }
@@ -256,69 +256,10 @@
     color: var(--text-secondary);
 }
 
-/* Login Tabs */
-.login-tabs {
-    display: flex;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-xl);
-    background: var(--bg-input);
-    padding: 6px;
-    border-radius: var(--border-radius-md);
-    border: 1px solid var(--border-color);
-    position: relative;
-    z-index: 1;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 14px 24px;
-    background: transparent;
-    border: none;
-    border-radius: var(--border-radius-sm);
-    color: var(--text-muted);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition-base);
-    position: relative;
-    z-index: 1;
-}
-
-.tab-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--gradient-primary);
-    border-radius: var(--border-radius-sm);
-    opacity: 0;
-    transition: var(--transition-base);
-    z-index: -1;
-}
-
-.tab-btn:hover {
-    color: var(--text-primary);
-}
-
-.tab-btn.active {
-    color: var(--bg-primary);
-    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
-}
-
-.tab-btn.active::before {
-    opacity: 1;
-}
-
 /* Login Form */
 .login-form {
     position: relative;
     z-index: 1;
-}
-
-.login-form.hidden {
-    display: none;
 }
 
 /* Password Input with Toggle */

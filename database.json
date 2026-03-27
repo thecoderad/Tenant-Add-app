@@ -17,7 +17,7 @@
       "name": "TechStart Inc",
       "domain": "techstart.io",
       "email": "admin@techstart.io",
-      "password": "tech456",
+      "password": "techie",
       "status": "active",
       "created": "2025-02-20",
       "description": "Technology solutions",
@@ -71,6 +71,19 @@
       "description": "Premium beauty salon",
       "slug": "bella-salon",
       "businessType": "salon"
+    },
+    {
+      "id": 1774539316910,
+      "name": "Testing",
+      "domain": "test.com",
+      "email": "test@test.com",
+      "password": "test",
+      "status": "active",
+      "description": "",
+      "businessType": "gym",
+      "slug": "testing",
+      "created": "2026-03-26",
+      "loginUrl": "http://localhost:3000/login/testing"
     }
   ],
   "users": {
@@ -84,6 +97,18 @@
       "password": "newpass123",
       "role": "tenant",
       "name": "Global Services"
+    },
+    "admin@techstart.io": {
+      "email": "admin@techstart.io",
+      "password": "techie",
+      "role": "tenant",
+      "name": "TechStart Inc"
+    },
+    "test@test.com": {
+      "email": "test@test.com",
+      "password": "test",
+      "role": "tenant",
+      "name": "Testing"
     }
   },
   "chatMessages": [
@@ -103,6 +128,31 @@
       "text": "yoo\n",
       "read": true,
       "timestamp": "2026-03-24T14:35:40.486Z"
+    },
+    {
+      "tenantId": 3,
+      "tenantName": "Global Services",
+      "sender": "admin",
+      "text": "yoo",
+      "read": true,
+      "timestamp": "2026-03-26T15:28:00.510Z"
+    },
+    {
+      "id": 1774538906111,
+      "tenantId": 7,
+      "tenantName": "Little Stars Daycare",
+      "sender": "tenant",
+      "text": "hi",
+      "timestamp": "2026-03-26T15:28:26.113Z",
+      "read": false
+    },
+    {
+      "tenantId": 7,
+      "tenantName": "Little Stars Daycare",
+      "sender": "admin",
+      "text": "hi",
+      "read": true,
+      "timestamp": "2026-03-26T15:28:36.512Z"
     }
   ],
   "supportEmails": [
@@ -115,7 +165,25 @@
       "message": "hi",
       "timestamp": "2026-03-24T14:35:11.113Z",
       "status": "resolved"
+    },
+    {
+      "id": 1774538926416,
+      "tenantId": 7,
+      "tenantName": "Little Stars Daycare",
+      "tenantEmail": "admin@littlestars.com",
+      "subject": "y",
+      "message": "y",
+      "timestamp": "2026-03-26T15:28:46.418Z",
+      "status": "resolved"
     }
   ],
-  "entities": {}
+  "entities": {
+    "1774539316910": {
+      "customers": [],
+      "patients": [],
+      "deals": [],
+      "appointments": [],
+      "tasks": []
+    }
+  }
 }

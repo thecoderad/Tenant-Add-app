@@ -631,6 +631,81 @@ a:hover {
 .spinner-sm { width: 24px; height: 24px; border-width: 2px; }
 .spinner-lg { width: 60px; height: 60px; border-width: 4px; }
 
+/* Real-time Sync Indicator */
+.sync-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-full);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
+}
+
+.sync-status:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+
+.sync-status.syncing {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+}
+
+.sync-status.synced {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+}
+
+.sync-status.error {
+    border-color: var(--neon-red);
+    color: var(--neon-red);
+}
+
+.sync-status i {
+    font-size: 0.9rem;
+}
+
+.sync-status.syncing i {
+    animation: spin 1s linear infinite;
+}
+
+/* Update Indicator Badge */
+.update-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--neon-green);
+    color: var(--bg-primary);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    animation: pulse 0.5s ease;
+}
+
+/* Data refresh animation */
+@keyframes refreshPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.refreshing {
+    animation: refreshPulse 0.5s ease-in-out;
+}
+
 /* Mobile Sidebar Toggle */
 .sidebar-toggle {
     display: none;
