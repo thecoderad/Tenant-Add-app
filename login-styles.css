@@ -519,3 +519,71 @@
         opacity: 0;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Theme Compatibility - Light Mode Adjustments
+   ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="light"] .login-page::before {
+    background-image:
+        linear-gradient(rgba(79, 70, 229, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79, 70, 229, 0.05) 1px, transparent 1px);
+}
+
+[data-theme="light"] .particle {
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+[data-theme="light"] .particle:nth-child(2),
+[data-theme="light"] .particle:nth-child(6) {
+    background: var(--secondary);
+    box-shadow: 0 0 10px var(--secondary);
+}
+
+[data-theme="light"] .login-box {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="light"] .brand-title {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .brand-subtitle {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .brand-features li {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .form-label {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .form-input {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="light"] .form-input::placeholder {
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .login-divider {
+    color: var(--text-tertiary);
+}
+
+[data-theme="light"] .demo-credentials {
+    color: var(--text-secondary);
+}
+
+[data-theme="light"] .cyber-border {
+    border-color: var(--border-color);
+}
+
+[data-theme="light"] .cyber-border::before {
+    background: var(--gradient-primary);
+}

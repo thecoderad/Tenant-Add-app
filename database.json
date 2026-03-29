@@ -84,6 +84,19 @@
       "slug": "testing",
       "created": "2026-03-26",
       "loginUrl": "http://localhost:3000/login/testing"
+    },
+    {
+      "id": 1774802670734,
+      "name": "testing is testing",
+      "domain": "testting.com",
+      "email": "test@testtest.com",
+      "password": "testtest",
+      "status": "active",
+      "description": "",
+      "businessType": "restaurant",
+      "slug": "testing-is-testing",
+      "created": "2026-03-29",
+      "loginUrl": "http://localhost:3000/login/testing-is-testing"
     }
   ],
   "users": {
@@ -109,6 +122,12 @@
       "password": "test",
       "role": "tenant",
       "name": "Testing"
+    },
+    "test@testtest.com": {
+      "email": "test@testtest.com",
+      "password": "testtest",
+      "role": "tenant",
+      "name": "testing is testing"
     }
   },
   "chatMessages": [
@@ -179,6 +198,13 @@
   ],
   "entities": {
     "1774539316910": {
+      "customers": [],
+      "patients": [],
+      "deals": [],
+      "appointments": [],
+      "tasks": []
+    },
+    "1774802670734": {
       "customers": [],
       "patients": [],
       "deals": [],

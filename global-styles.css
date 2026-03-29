@@ -101,10 +101,18 @@
     --bg-tertiary: #d4dfff;
     --bg-card: #ffffff;
     --bg-input: #f8faff;
-    --bg-sidebar: #1a1f3a;
+    --bg-sidebar: #ffffff;
     --text-primary: #0a0e1a;
     --text-secondary: #2d3a5c;
+    --text-muted: #5a6b8c;
     --border-color: #c4d0f0;
+    --border-light: #d4e0f0;
+    --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
+    --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.2);
+    --shadow-2xl: 0 30px 80px rgba(0, 0, 0, 0.25);
 }
 
 /* Reset & Base */

@@ -919,3 +919,79 @@
     font-size: 0.875rem;
     color: var(--text-muted);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Theme Compatibility Fixes
+   Ensure all components work in both light and dark modes
+   ═══════════════════════════════════════════════════════════════ */
+
+.calendar-event {
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.file-item-name {
+    color: var(--text-primary) !important;
+}
+
+.file-item-date {
+    color: var(--text-tertiary) !important;
+}
+
+.report-value {
+    color: var(--primary) !important;
+}
+
+.report-label {
+    color: var(--text-secondary) !important;
+}
+
+.settings-label {
+    color: var(--text-secondary) !important;
+}
+
+.settings-description {
+    color: var(--text-tertiary) !important;
+}
+
+.activity-item-title {
+    color: var(--text-primary) !important;
+}
+
+.activity-item-time {
+    color: var(--text-tertiary) !important;
+}
+
+.quick-action-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.quick-action-card:hover {
+    border-color: var(--primary) !important;
+    box-shadow: var(--glow-primary);
+}
+
+.quick-action-icon {
+    color: var(--primary) !important;
+}
+
+.module-content {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.module-header {
+    background: var(--bg-tertiary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.module-title {
+    color: var(--text-primary) !important;
+}
+
+.module-body {
+    background: var(--bg-input) !important;
+}
+

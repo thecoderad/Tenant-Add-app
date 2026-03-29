@@ -168,14 +168,49 @@ app.post('/api/login/tenant-slug', (req, res) => {
     const db = getDB();
     const { slug, password } = req.body;
     const tenant = db.tenants.find(t => t.slug === slug && t.password === password);
-    
+
     if (tenant) {
         if (tenant.status === 'inactive') return res.status(403).json({ error: 'Account inactive' });
-        res.json({ 
-            success: true, 
-            role: 'tenant', 
+        res.json({
+            success: true,
+            role: 'tenant',
             tenant: { id: tenant.id, name: tenant.name, email: tenant.email, description: tenant.description, domain: tenant.domain, businessType: tenant.businessType },
-            redirect: '/tenant.html' 
+            redirect: '/tenant.html'
+        });
+    } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+    }
+});
+
+// Staff login by slug
+app.post('/api/login/staff', (req, res) => {
+    const db = getDB();
+    const { slug, email, password, staffSlug } = req.body;
+    const tenant = db.tenants.find(t => t.slug === slug);
+
+    if (!tenant) {
+        return res.status(404).json({ error: 'Business not found' });
+    }
+
+    // Check if staff exists for this tenant
+    let staff = db.staff?.[tenant.id]?.find(s => s.email === email && s.password === password);
+    
+    // If staffSlug provided, verify it matches
+    if (staff && staffSlug) {
+        const generatedSlug = staff.slug || staff.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        if (generatedSlug !== staffSlug) {
+            staff = null;
+        }
+    }
+
+    if (staff) {
+        if (staff.status === 'inactive') return res.status(403).json({ error: 'Account inactive' });
+        res.json({
+            success: true,
+            role: 'staff',
+            staff: { id: staff.id, name: staff.name, email: staff.email, role: staff.role, slug: staff.slug },
+            tenant: { id: tenant.id, name: tenant.name, email: tenant.email, description: tenant.description, domain: tenant.domain, businessType: tenant.businessType },
+            redirect: '/staff-dashboard.html'
         });
     } else {
         res.status(401).json({ error: 'Invalid credentials' });
@@ -378,13 +413,13 @@ app.get('/api/reports/:tenantId/:type', (req, res) => {
     const db = getDB();
     const entities = db.entities[req.params.tenantId] || { customers: [], deals: [], appointments: [], tasks: [] };
     const type = req.params.type;
-    
+
     let report = {
         type,
         generated: new Date().toISOString(),
         data: {}
     };
-    
+
     switch(type) {
         case 'revenue':
             report.data = {
@@ -420,8 +455,122 @@ app.get('/api/reports/:tenantId/:type', (req, res) => {
         default:
             report.data = { entities };
     }
-    
+
     res.json(report);
+});
+
+// ==================== BUSINESS FEATURES API ====================
+
+// CRM Contacts
+app.get('/api/contacts/:tenantId', (req, res) => {
+    const db = getDB();
+    const contacts = db.contacts?.[req.params.tenantId] || [];
+    res.json(contacts);
+});
+
+app.post('/api/contacts/:tenantId', (req, res) => {
+    const db = getDB();
+    if (!db.contacts) db.contacts = {};
+    if (!db.contacts[req.params.tenantId]) db.contacts[req.params.tenantId] = [];
+    const contact = { id: Date.now(), ...req.body, created: new Date().toISOString() };
+    db.contacts[req.params.tenantId].push(contact);
+    saveDB(db);
+    res.json(contact);
+});
+
+app.put('/api/contacts/:tenantId/:id', (req, res) => {
+    const db = getDB();
+    const contacts = db.contacts?.[req.params.tenantId] || [];
+    const idx = contacts.findIndex(c => c.id === parseInt(req.params.id));
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    contacts[idx] = { ...contacts[idx], ...req.body };
+    saveDB(db);
+    res.json(contacts[idx]);
+});
+
+app.delete('/api/contacts/:tenantId/:id', (req, res) => {
+    const db = getDB();
+    const contacts = db.contacts?.[req.params.tenantId] || [];
+    const idx = contacts.findIndex(c => c.id === parseInt(req.params.id));
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    contacts.splice(idx, 1);
+    saveDB(db);
+    res.json({ success: true });
+});
+
+// Staff Management
+app.get('/api/staff/:tenantId', (req, res) => {
+    const db = getDB();
+    const staff = db.staff?.[req.params.tenantId] || [];
+    res.json(staff);
+});
+
+app.post('/api/staff/:tenantId', (req, res) => {
+    const db = getDB();
+    if (!db.staff) db.staff = {};
+    if (!db.staff[req.params.tenantId]) db.staff[req.params.tenantId] = [];
+    const member = { id: Date.now(), ...req.body, joined: new Date().toISOString() };
+    db.staff[req.params.tenantId].push(member);
+    saveDB(db);
+    res.json(member);
+});
+
+app.put('/api/staff/:tenantId/:id', (req, res) => {
+    const db = getDB();
+    const staff = db.staff?.[req.params.tenantId] || [];
+    const idx = staff.findIndex(s => s.id === parseInt(req.params.id));
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    staff[idx] = { ...staff[idx], ...req.body };
+    saveDB(db);
+    res.json(staff[idx]);
+});
+
+app.delete('/api/staff/:tenantId/:id', (req, res) => {
+    const db = getDB();
+    const staff = db.staff?.[req.params.tenantId] || [];
+    const idx = staff.findIndex(s => s.id === parseInt(req.params.id));
+    if (idx === -1) return res.status(404).json({ error: 'Not found' });
+    staff.splice(idx, 1);
+    saveDB(db);
+    res.json({ success: true });
+});
+
+// Logo Upload (base64)
+app.get('/api/logo/:tenantId', (req, res) => {
+    const db = getDB();
+    const logo = db.logos?.[req.params.tenantId] || null;
+    res.json(logo);
+});
+
+app.post('/api/logo/:tenantId', (req, res) => {
+    const db = getDB();
+    if (!db.logos) db.logos = {};
+    const logo = { id: Date.now(), ...req.body, uploaded: new Date().toISOString() };
+    db.logos[req.params.tenantId] = logo;
+    saveDB(db);
+    res.json(logo);
+});
+
+app.delete('/api/logo/:tenantId', (req, res) => {
+    const db = getDB();
+    if (db.logos) delete db.logos[req.params.tenantId];
+    saveDB(db);
+    res.json({ success: true });
+});
+
+// AI Receptionist Settings
+app.get('/api/ai-receptionist/:tenantId', (req, res) => {
+    const db = getDB();
+    const settings = db.aiReceptionist?.[req.params.tenantId] || { enabled: true, greeting: 'Hello! Welcome to our business. How can I help you today?', responses: [] };
+    res.json(settings);
+});
+
+app.put('/api/ai-receptionist/:tenantId', (req, res) => {
+    const db = getDB();
+    if (!db.aiReceptionist) db.aiReceptionist = {};
+    db.aiReceptionist[req.params.tenantId] = { id: Date.now(), ...req.body, updated: new Date().toISOString() };
+    saveDB(db);
+    res.json(db.aiReceptionist[req.params.tenantId]);
 });
 
 // Serve tenant login page
@@ -429,9 +578,19 @@ app.get('/login/:slug', (req, res) => {
     res.sendFile(path.join(__dirname, 'tenant-login.html'));
 });
 
+// Serve staff login page
+app.get('/staff/:slug', (req, res) => {
+    res.sendFile(path.join(__dirname, 'staff-login.html'));
+});
+
 // Serve tenant dashboard
 app.get('/tenant.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'tenant.html'));
+});
+
+// Serve staff dashboard
+app.get('/staff-dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'staff-dashboard.html'));
 });
 
 app.get('/', (req, res) => {

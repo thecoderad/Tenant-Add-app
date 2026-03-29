@@ -6,7 +6,7 @@
     <title>TenantHub - Multi-Tenant Platform</title>
     <link rel="stylesheet" href="/global-styles.css">
     <link rel="stylesheet" href="/login-styles.css">
-    <link rel="stylesheet" href="/theme.css">
+    <link rel="stylesheet" href="/theme-enhanced.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -77,21 +77,37 @@
             setTimeout(() => { toast.classList.add('hiding'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        // Theme toggle
+        // Theme toggle with localStorage
         function toggleTheme() {
             const body = document.body;
             const icon = document.querySelector('.theme-toggle .icon');
             const label = document.querySelector('.theme-toggle span:last-child');
-            if (body.getAttribute('data-theme') === 'light') {
-                body.removeAttribute('data-theme');
-                icon.textContent = '🌙';
-                label.textContent = 'Dark Mode';
-            } else {
+            const newTheme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            
+            if (newTheme === 'light') {
                 body.setAttribute('data-theme', 'light');
                 icon.textContent = '☀️';
                 label.textContent = 'Light Mode';
+            } else {
+                body.removeAttribute('data-theme');
+                icon.textContent = '🌙';
+                label.textContent = 'Dark Mode';
             }
+            
+            localStorage.setItem('loginPageTheme', newTheme);
         }
+
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('loginPageTheme');
+            if (savedTheme === 'light') {
+                document.body.setAttribute('data-theme', 'light');
+                const icon = document.querySelector('.theme-toggle .icon');
+                const label = document.querySelector('.theme-toggle span:last-child');
+                if (icon) icon.textContent = '☀️';
+                if (label) label.textContent = 'Light Mode';
+            }
+        });
 
         // Password toggle
         function togglePassword(type) {
@@ -132,5 +148,6 @@
             }
         });
     </script>
+    <script src="/cursor-effects.js"></script>
 </body>
 </html>

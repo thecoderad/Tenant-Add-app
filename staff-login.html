@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenant Login - TenantHub</title>
+    <title>Staff Login - TenantHub</title>
     <link rel="stylesheet" href="/global-styles.css">
     <link rel="stylesheet" href="/login-styles.css">
     <link rel="stylesheet" href="/theme-enhanced.css">
@@ -22,6 +22,8 @@
         .toast-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
         .toast-success .toast-icon { background: rgba(0,255,136,0.2); color: var(--neon-green); }
         .toast-error .toast-icon { background: rgba(255,56,96,0.2); color: var(--neon-red); }
+        .staff-permissions { background: var(--bg-tertiary); border-radius: 8px; padding: 12px; margin-top: 10px; font-size: 0.85rem; }
+        .staff-permissions i { color: var(--neon-cyan); margin-right: 6px; }
     </style>
 </head>
 <body>
@@ -32,41 +34,50 @@
 
         <div class="login-container" style="flex-direction:column;">
             <div class="login-brand" style="max-width:100%;text-align:center;">
-                <div class="brand-logo animate-float" style="font-size:4rem;"><i class="fas fa-building"></i></div>
-                <h1 class="brand-title">TenantHub</h1>
-                <p class="brand-subtitle">Business Management Portal</p>
+                <div class="brand-logo animate-float" style="font-size:4rem;"><i class="fas fa-user-shield"></i></div>
+                <h1 class="brand-title">Staff Portal</h1>
+                <p class="brand-subtitle">Team Member Access</p>
             </div>
 
             <div class="login-box cyber-border">
-                <div id="tenant-lookup" class="tenant-info">
-                    <div class="tenant-info-icon"><i class="fas fa-building"></i></div>
+                <div id="staff-lookup" class="tenant-info">
+                    <div class="tenant-info-icon"><i class="fas fa-user-shield"></i></div>
                     <h2 id="loading-text">Loading...</h2>
                     <p id="loading-desc">Please wait</p>
                     <div id="business-badge"></div>
+                    <div class="staff-permissions">
+                        <i class="fas fa-check-circle"></i> Staff Access Portal<br>
+                        <i class="fas fa-check-circle"></i> Team Collaboration Tools<br>
+                        <i class="fas fa-check-circle"></i> Task Management
+                    </div>
                     <div class="feature-grid" id="feature-grid"></div>
                 </div>
 
-                <form id="tenant-login-form" class="hidden">
-                    <div class="login-header"><h2>Sign In</h2><p>Welcome to <span id="company-name-display">your workspace</span></p></div>
+                <form id="staff-login-form" class="hidden">
+                    <div class="login-header"><h2>Staff Sign In</h2><p>Welcome to <span id="company-name-display">your workspace</span></p></div>
                     <div class="form-group">
                         <label class="form-label">Company</label>
                         <input type="text" id="company-display" class="form-input" readonly style="background:var(--bg-tertiary);">
                     </div>
                     <div class="form-group">
+                        <label class="form-label">Staff Email</label>
+                        <input type="email" id="staff-email" class="form-input" placeholder="staff@company.com" required>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Password</label>
                         <div class="password-wrapper">
-                            <input type="password" id="tenant-password" class="form-input" placeholder="Enter password" required>
+                            <input type="password" id="staff-password" class="form-input" placeholder="Enter password" required>
                             <button type="button" class="password-toggle" onclick="togglePassword()"><i class="fas fa-eye"></i></button>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                    <button type="submit" class="btn btn-primary btn-full">Sign In as Staff</button>
                     <div class="login-divider" style="margin-top:20px;"><a href="/index.html" style="color:var(--neon-cyan);"><i class="fas fa-arrow-left"></i> Back to Home</a></div>
                 </form>
 
                 <div id="error-state" class="hidden" style="text-align:center;padding:40px;">
                     <i class="fas fa-exclamation-triangle" style="font-size:3rem;color:var(--neon-red);margin-bottom:20px;"></i>
                     <h3 style="color:var(--neon-red);">Not Found</h3>
-                    <p style="color:var(--text-secondary);">This business login URL is invalid.</p>
+                    <p style="color:var(--text-secondary);">This staff login URL is invalid.</p>
                     <a href="/index.html" class="btn btn-primary">Go Home</a>
                 </div>
             </div>
@@ -99,7 +110,7 @@
             const icon = document.querySelector('.theme-toggle .icon');
             const label = document.querySelector('.theme-toggle span:last-child');
             const newTheme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            
+
             if (newTheme === 'light') {
                 body.setAttribute('data-theme', 'light');
                 icon.textContent = '☀️';
@@ -109,13 +120,13 @@
                 icon.textContent = '🌙';
                 label.textContent = 'Dark Mode';
             }
-            
-            localStorage.setItem('tenantLoginPageTheme', newTheme);
+
+            localStorage.setItem('staffLoginPageTheme', newTheme);
         }
 
         // Initialize theme on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('tenantLoginPageTheme');
+            const savedTheme = localStorage.getItem('staffLoginPageTheme');
             if (savedTheme === 'light') {
                 document.body.setAttribute('data-theme', 'light');
                 const icon = document.querySelector('.theme-toggle .icon');
@@ -126,23 +137,19 @@
         });
 
         function togglePassword() {
-            const input = document.getElementById('tenant-password');
+            const input = document.getElementById('staff-password');
             const icon = input.parentElement.querySelector('i');
             input.type = input.type === 'password' ? 'text' : 'password';
             icon.className = input.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
         }
 
-        function switchTab(tab) {
-            document.getElementById('admin-form').classList.toggle('hidden', tab !== 'admin');
-            document.getElementById('tenant-form').classList.toggle('hidden', tab !== 'tenant');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.textContent.toLowerCase() === tab));
-        }
+        async function loadStaffInfo() {
+            const pathParts = window.location.pathname.split('/').filter(p => p);
+            const slug = pathParts.length >= 2 ? pathParts[1] : pathParts[0];
+            const staffSlug = pathParts.length >= 3 ? pathParts[2] : null;
 
-        async function loadTenantInfo() {
-            const slug = window.location.pathname.split('/').pop();
-            
             // Handle invalid URLs
-            if (!slug || slug === 'tenant-login.html' || slug.includes('.html') || slug === 'login') {
+            if (!slug || slug === 'staff-login.html' || slug.includes('.html') || slug === 'staff') {
                 document.getElementById('loading-text').textContent = 'Invalid URL';
                 document.getElementById('loading-desc').innerHTML = 'Redirecting to demo... <span id="countdown">3</span>s';
                 let count = 3;
@@ -150,7 +157,7 @@
                     count--;
                     const el = document.getElementById('countdown');
                     if (el) el.textContent = count;
-                    if (count <= 0) { clearInterval(timer); window.location.href = '/login/care-clinic'; }
+                    if (count <= 0) { clearInterval(timer); window.location.href = '/staff/care-clinic'; }
                 }, 1000);
                 return;
             }
@@ -163,9 +170,9 @@
                 const data = await res.json();
 
                 tenantData = data;
-                document.getElementById('loading-text').textContent = data.name;
-                document.getElementById('loading-desc').textContent = data.description || 'Welcome to your business portal';
-                document.getElementById('company-name-display').textContent = data.name;
+                document.getElementById('loading-text').textContent = data.name + ' - Staff Portal';
+                document.getElementById('loading-desc').textContent = data.description || 'Welcome to your business staff portal';
+                document.getElementById('company-name-display').value = data.name;
                 document.getElementById('company-display').value = data.name;
 
                 // Business badge
@@ -178,56 +185,68 @@
                 document.getElementById('feature-grid').innerHTML = features.map(f => `<div class="feature-item"><i class="fas ${f.toLowerCase().includes('appoint')?'fa-calendar':f.toLowerCase().includes('customer')||f.toLowerCase().includes('patient')||f.toLowerCase().includes('client')?'fa-users':'fa-chart-line'}"></i>${f}</div>`).join('');
 
                 setTimeout(() => {
-                    document.getElementById('tenant-lookup').classList.add('hidden');
-                    document.getElementById('tenant-login-form').classList.remove('hidden');
-                    document.getElementById('tenant-password').focus();
+                    document.getElementById('staff-lookup').classList.add('hidden');
+                    document.getElementById('staff-login-form').classList.remove('hidden');
+                    document.getElementById('staff-email').focus();
                 }, 1000);
 
             } catch (err) {
                 document.getElementById('loading-text').textContent = 'Error';
                 document.getElementById('loading-desc').textContent = 'Business not found or server error';
                 setTimeout(() => {
-                    document.getElementById('tenant-lookup').classList.add('hidden');
+                    document.getElementById('staff-lookup').classList.add('hidden');
                     document.getElementById('error-state').classList.remove('hidden');
                 }, 2000);
             }
         }
 
-        document.getElementById('tenant-login-form').addEventListener('submit', async function(e) {
+        document.getElementById('staff-login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = this.querySelector('button[type="submit"]');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
             btn.disabled = true;
 
+            const pathParts = window.location.pathname.split('/').filter(p => p);
+            const staffSlug = pathParts.length >= 3 ? pathParts[2] : null;
+
             try {
-                const res = await fetch(`${API}/login/tenant-slug`, {
+                const res = await fetch(`${API}/login/staff`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ slug: tenantSlug, password: document.getElementById('tenant-password').value })
+                    body: JSON.stringify({
+                        slug: tenantSlug,
+                        email: document.getElementById('staff-email').value,
+                        password: document.getElementById('staff-password').value,
+                        staffSlug: staffSlug
+                    })
                 });
                 const data = await res.json();
 
                 if (data.success) {
-                    sessionStorage.setItem('tenanthub_user', JSON.stringify({ role: 'tenant', email: data.tenant.email }));
+                    sessionStorage.setItem('tenanthub_user', JSON.stringify({
+                        role: 'staff',
+                        email: data.staff.email,
+                        name: data.staff.name,
+                        tenantId: data.tenant.id
+                    }));
                     sessionStorage.setItem('current_tenant', JSON.stringify(data.tenant));
                     showToast('Welcome! Redirecting...', 'success');
                     setTimeout(() => {
-                        console.log('Redirecting to tenant.html');
-                        window.location.href = '/tenant.html';
+                        window.location.href = '/staff-dashboard.html';
                     }, 1000);
                 } else {
                     showToast(data.error || 'Invalid credentials', 'error');
-                    btn.innerHTML = 'Sign In';
+                    btn.innerHTML = 'Sign In as Staff';
                     btn.disabled = false;
                 }
             } catch (err) {
                 showToast('Server error: ' + err.message, 'error');
-                btn.innerHTML = 'Sign In';
+                btn.innerHTML = 'Sign In as Staff';
                 btn.disabled = false;
             }
         });
 
-        document.addEventListener('DOMContentLoaded', loadTenantInfo);
+        document.addEventListener('DOMContentLoaded', loadStaffInfo);
     </script>
     <script src="/cursor-effects.js"></script>
 </body>

@@ -35,17 +35,17 @@ class EnhancedTenantFeatures {
     toggleTheme() {
         const body = document.body;
         const isLight = body.getAttribute('data-theme') === 'light';
-        
+
         if (isLight) {
             body.removeAttribute('data-theme');
-            this.settings.darkMode = false;
+            this.settings.darkMode = true;
             this.updateThemeButtons('dark');
         } else {
             body.setAttribute('data-theme', 'light');
-            this.settings.darkMode = true;
+            this.settings.darkMode = false;
             this.updateThemeButtons('light');
         }
-        
+
         this.saveSettings();
         this.showToast(`Switched to ${isLight ? 'dark' : 'light'} mode`, 'success');
     }
@@ -53,23 +53,23 @@ class EnhancedTenantFeatures {
     updateThemeButtons(mode) {
         const icons = document.querySelectorAll('.theme-toggle .icon');
         const labels = document.querySelectorAll('.theme-toggle span:last-child');
-        
+
         icons.forEach(icon => {
-            icon.textContent = mode === 'light' ? '☀️' : '🌙';
+            icon.textContent = mode === 'dark' ? '🌙' : '☀️';
         });
-        
+
         labels.forEach(label => {
-            label.textContent = mode === 'light' ? 'Light Mode' : 'Dark Mode';
+            label.textContent = mode === 'dark' ? 'Dark Mode' : 'Light Mode';
         });
     }
 
     applyTheme() {
         if (this.settings.darkMode) {
-            document.body.setAttribute('data-theme', 'light');
-            this.updateThemeButtons('light');
-        } else {
             document.body.removeAttribute('data-theme');
             this.updateThemeButtons('dark');
+        } else {
+            document.body.setAttribute('data-theme', 'light');
+            this.updateThemeButtons('light');
         }
     }
 
