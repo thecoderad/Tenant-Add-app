@@ -97,6 +97,32 @@
       "slug": "testing-is-testing",
       "created": "2026-03-29",
       "loginUrl": "http://localhost:3000/login/testing-is-testing"
+    },
+    {
+      "id": 1774806913137,
+      "name": "toothsy",
+      "domain": "toothsy.com",
+      "email": "admin@toothsy.com",
+      "password": "toothsy",
+      "status": "active",
+      "description": "",
+      "businessType": "clinic",
+      "slug": "toothsy",
+      "created": "2026-03-29",
+      "loginUrl": "http://localhost:3000/login/toothsy"
+    },
+    {
+      "id": 1774807051098,
+      "name": "Bedi International School",
+      "domain": "bedi.com",
+      "email": "admin@bedi.com",
+      "password": "bedi",
+      "status": "active",
+      "description": "",
+      "businessType": "school",
+      "slug": "bedi-international-school",
+      "created": "2026-03-29",
+      "loginUrl": "http://localhost:3000/login/bedi-international-school"
     }
   ],
   "users": {
@@ -128,6 +154,18 @@
       "password": "testtest",
       "role": "tenant",
       "name": "testing is testing"
+    },
+    "admin@toothsy.com": {
+      "email": "admin@toothsy.com",
+      "password": "toothsy",
+      "role": "tenant",
+      "name": "toothsy"
+    },
+    "admin@bedi.com": {
+      "email": "admin@bedi.com",
+      "password": "bedi",
+      "role": "tenant",
+      "name": "Bedi International School"
     }
   },
   "chatMessages": [
@@ -172,6 +210,23 @@
       "text": "hi",
       "read": true,
       "timestamp": "2026-03-26T15:28:36.512Z"
+    },
+    {
+      "id": 1774806940852,
+      "tenantId": 1774806913137,
+      "tenantName": "toothsy",
+      "sender": "tenant",
+      "text": "hi",
+      "timestamp": "2026-03-29T17:55:40.853Z",
+      "read": false
+    },
+    {
+      "tenantId": 1774806913137,
+      "tenantName": "toothsy",
+      "sender": "admin",
+      "text": "yoo",
+      "read": true,
+      "timestamp": "2026-03-29T17:55:47.637Z"
     }
   ],
   "supportEmails": [
@@ -205,6 +260,20 @@
       "tasks": []
     },
     "1774802670734": {
+      "customers": [],
+      "patients": [],
+      "deals": [],
+      "appointments": [],
+      "tasks": []
+    },
+    "1774806913137": {
+      "customers": [],
+      "patients": [],
+      "deals": [],
+      "appointments": [],
+      "tasks": []
+    },
+    "1774807051098": {
       "customers": [],
       "patients": [],
       "deals": [],

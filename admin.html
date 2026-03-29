@@ -77,13 +77,19 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+            background: var(--bg-primary, linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%));
             min-height: 100vh;
-            color: #111827;
+            color: var(--text-primary, #111827);
             overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] body {
+            background: var(--bg-primary, #0a0e1a);
+            color: var(--text-primary, #ffffff);
         }
 
         /* Animated Background */
@@ -2290,6 +2296,21 @@
             localStorage.setItem('adminTheme', newTheme);
             updateThemeButtons(newTheme);
         }
+    </script>
+    
+    <!-- AI Chat Widget Container -->
+    <div id="ai-chat-container"></div>
+    
+    <script src="/nvidia-ai.js"></script>
+    <script>
+        // Initialize AI Chat Widget for Admin
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof AIChatWidget !== 'undefined') {
+                window.aiChatWidget = new AIChatWidget('ai-chat-container', {
+                    context: 'You are a helpful AI assistant for TenantHub, a multi-tenant business management platform. You are currently helping the platform administrator. Help them with tenant management, platform analytics, user support, system configuration, and business insights. Provide practical, actionable advice for managing multiple tenants and optimizing platform performance.'
+                });
+            }
+        });
     </script>
 </body>
 </html>

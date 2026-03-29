@@ -47,13 +47,19 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            background: var(--bg-primary, linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%));
             min-height: 100vh;
-            color: var(--gray-900);
+            color: var(--text-primary, #111827);
             overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] body {
+            background: var(--bg-primary, #0a0e1a);
+            color: var(--text-primary, #ffffff);
         }
 
         /* Animated Background */
@@ -99,14 +105,15 @@
             top: 0;
             width: var(--sidebar-width);
             height: 100vh;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--bg-sidebar, rgba(255, 255, 255, 0.95));
             backdrop-filter: blur(20px);
-            border-right: 1px solid var(--gray-200);
+            border-right: 1px solid var(--border-color, var(--gray-200));
             z-index: 1000;
             display: flex;
             flex-direction: column;
             transition: var(--transition);
             box-shadow: var(--shadow-lg);
+            color: var(--text-primary, #111827);
         }
         .sidebar.open { transform: translateX(-100%); }
 
@@ -271,9 +278,9 @@
         /* Header */
         .header {
             height: var(--header-height);
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--bg-card, rgba(255, 255, 255, 0.95));
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--gray-200);
+            border-bottom: 1px solid var(--border-color, var(--gray-200));
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -282,6 +289,7 @@
             top: 0;
             z-index: 100;
             box-shadow: var(--shadow-sm);
+            color: var(--text-primary, #111827);
         }
         .header-left {
             display: flex;
@@ -2247,6 +2255,21 @@
                 showToast('Task deleted successfully', 'success');
             }
         }
+    </script>
+    
+    <!-- AI Chat Widget Container -->
+    <div id="ai-chat-container"></div>
+    
+    <script src="/nvidia-ai.js"></script>
+    <script>
+        // Initialize AI Chat Widget for Tenant
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof AIChatWidget !== 'undefined') {
+                window.aiChatWidget = new AIChatWidget('ai-chat-container', {
+                    context: 'You are a helpful AI assistant for TenantHub, a multi-tenant business management platform. You are currently helping a tenant user. Help them with business operations, customer management, appointments, tasks, analytics, and general business inquiries. Provide practical, actionable advice.'
+                });
+            }
+        });
     </script>
 </body>
 </html>

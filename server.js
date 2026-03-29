@@ -573,6 +573,61 @@ app.put('/api/ai-receptionist/:tenantId', (req, res) => {
     res.json(db.aiReceptionist[req.params.tenantId]);
 });
 
+// ==================== NVIDIA AI API PROXY ====================
+// Proxy endpoint for NVIDIA NIM AI API (optional - for production use)
+app.post('/api/ai/chat', async (req, res) => {
+    const { message, context, conversationHistory = [] } = req.body;
+    
+    const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || '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';
+    const INVOKE_URL = 'https://integrate.api.nvidia.com/v1/chat/completions';
+    
+    try {
+        const messages = [
+            { role: 'system', content: context || 'You are a helpful AI assistant for TenantHub, a multi-tenant business management platform.' },
+            ...conversationHistory,
+            { role: 'user', content: message }
+        ];
+        
+        const payload = {
+            model: 'moonshotai/kimi-k2.5',
+            messages: messages,
+            max_tokens: 16384,
+            temperature: 1.0,
+            top_p: 1.0,
+            stream: false,
+            chat_template_kwargs: {
+                thinking: true
+            }
+        };
+        
+        const response = await fetch(INVOKE_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`NVIDIA API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        res.json({
+            success: true,
+            response: data.choices?.[0]?.message?.content || 'No response generated',
+            raw: data
+        });
+    } catch (error) {
+        console.error('AI Proxy Error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Serve tenant login page
 app.get('/login/:slug', (req, res) => {
     res.sendFile(path.join(__dirname, 'tenant-login.html'));
